@@ -1,0 +1,28 @@
+[project]
+name = "uiapimcptestagent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "zhouxiaochuan", email = "3067188237@qq.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "dotenv>=0.9.9",
+    "fastmcp>=4.0.5",
+    "jsonpath>=0.82.2",
+    "langchain>=1.4.2",
+    "langchain-mcp-adapters>=0.3.1",
+    "langchain-openai>=1.6.4",
+    "langchain-qwq>=0.3.5",
+    "pycryptodome>=3.23.0",
+    "pydantic>=2.13.5",
+    "sqlalchemy>=2.0.54",
+]
+
+[project.scripts]
+uiapimcptestagent = "uiapimcptestagent:main"
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
