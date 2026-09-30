@@ -8,15 +8,18 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "allure-pytest>=2.16.2",
     "dotenv>=0.9.9",
     "fastmcp>=4.0.5",
     "jsonpath>=0.82.2",
+    "jsonpath-ng>=1.8.0",
     "langchain>=1.4.2",
     "langchain-mcp-adapters>=0.3.1",
     "langchain-openai>=1.6.4",
     "langchain-qwq>=0.3.5",
     "pycryptodome>=3.23.0",
     "pydantic>=2.13.5",
+    "pytest>=9.1.1",
     "sqlalchemy>=2.0.54",
 ]
 

@@ -8,6 +8,7 @@ from typing import Literal, Union, Optional
 
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
+from uiapimcptestagent.assertion.assertion_rules import AssertionRules
 from uiapimcptestagent.db.process.string_context_executor import StringContextExecutor
 from uiapimcptestagent.db.process.string_method_executor import StringMethodExecutor
 
@@ -22,7 +23,6 @@ class APiTestDataResExtract(BaseModel):
     handle_param: dict = Field( default_factory=lambda : {}, description='处理方法参数')
     actual: Optional[Union[list, dict, str, int, float, bool]] = Field( default=None, description='实际值')
 
-
 class ApiTestDataModel(BaseModel):
     """
     API测试数据表
@@ -35,7 +35,7 @@ class ApiTestDataModel(BaseModel):
     # api_info_id: int = Field(..., description='关联的API信息ID')
     data: Optional[dict] = Field(default=None, description='请求数据')
     params: Optional[dict] = Field(default=None, description='请求参数')
-    extract: Optional[list[APiTestDataResExtract]] = Field(default=None, description='提取字段')
+
     headers: Optional[dict] = Field(default=None, description='请求头')
     # data_relations: list[ApiCaseDataRelationModel] = Field(..., description='关联的测试用例数据关联表')
     api_info: ApiInfoModel = Field(..., description='关联的API信息')
@@ -76,9 +76,9 @@ class ApiTestCaseModel(BaseModel):
     id: int = Field(..., description='ID')
     module: str = Field(..., description='测试用例模块')
     sub_module: str = Field(..., description='测试用例子模块')
-    name: str = Field(..., description='测试用例名称')
+    title: str = Field(..., description='测试用例标题')
     description: str = Field(..., description='测试用例描述')
-    case_relations: list[ApiCaseDataRelationModel] = Field(..., description='关联的测试用例数据关联表')
+    # case_relations: list[ApiCaseDataRelationModel] = Field(..., description='关联的测试用例数据关联表')
 
 
 class ApiCaseDataRelationModel(BaseModel):
@@ -87,8 +87,8 @@ class ApiCaseDataRelationModel(BaseModel):
     """
     model_config = ConfigDict(from_attributes=True)
     id: int = Field(..., description='主键ID')
-    case_id: int = Field(..., description='用例id')
     order: int = Field(..., description='执行顺序从0开始')
-    data_id: int = Field(..., description='数据id')
     test_data: ApiTestDataModel = Field(..., description='关联的测试数据')
+    extract: Optional[list[APiTestDataResExtract]] = Field(default=None, description='提取字段')
+    validate_rules: Optional[list[AssertionRules]] = Field(default=None, description='校验字段')
     test_case: ApiTestCaseModel = Field(..., description='关联的测试用例')

@@ -3,6 +3,12 @@
 # Time: 2026/9/29 15:56
 # Author:zhouxiaochuan
 # Description:
-from uiapimcptestagent.main import main
+# import os
+# import subprocess
 
-main()
+import pytest
+
+def run():
+    pytest.main(['-vs', "./test/", "--alluredir=../allure-results", "--clean-alluredir"])
+
+run()

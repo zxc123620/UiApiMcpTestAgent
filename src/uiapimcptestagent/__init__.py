@@ -8,7 +8,7 @@ import dotenv
 from uiapimcptestagent.db.engine import db_engine
 from uiapimcptestagent.db.tables import Base
 
-current_dir_path = Path(__file__).resolve().parent
+current_dir_path = Path(".").resolve().parent
 
 def init_env():
     """
@@ -21,7 +21,7 @@ def init_logger_config():
     """
     初始化日志配置
     """
-    log_dir_path = current_dir_path.parent / "logs"
+    log_dir_path = current_dir_path / "logs"
     if not log_dir_path.exists():
         log_dir_path.mkdir()
     log_config_data = {

@@ -10,7 +10,7 @@ import uuid
 from typing import Dict, Optional, Type
 from urllib.parse import urljoin
 
-
+import allure
 from pydantic import BaseModel, ValidationError
 import requests
 from requests.sessions import Session
@@ -91,6 +91,7 @@ class BaseAPIClient:
             logger.warning("响应体不是JSON格式,不输出到日志中")
             # logger.debug(f"响应体内容: {response.text}")
 
+    @allure.step("发送HTTP请求")
     def request(self, method: Literal["GET", "POST", "PUT", "DELETE"],  endpoint: str,
                 expected_status_code: int = 200,
                 response_model: Optional[Type[BaseModel]] = None,

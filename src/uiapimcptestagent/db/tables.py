@@ -23,7 +23,7 @@ class ApiTestData(Base):
     api_info_id: Mapped[int] = mapped_column(ForeignKey("api_info.id"), doc='关联的API信息ID')
     data: Mapped[dict] = mapped_column(JSON, nullable=True, doc='请求数据')
     params: Mapped[dict] = mapped_column(JSON, nullable=True, doc='请求参数')
-    extract: Mapped[dict] = mapped_column(JSON, nullable=True, doc='提取字段')
+
     data_relations: Mapped[list["ApiCaseDataRelation"]] = relationship(back_populates="test_data")
     api_info: Mapped['ApiInfo'] = relationship(back_populates="test_datas")
 
@@ -49,7 +49,7 @@ class ApiTestCase(Base):
     key: Mapped[str] = mapped_column(String(255), nullable=False,index=True, doc='测试用例键')
     module: Mapped[str] = mapped_column(String(255), nullable=True, doc='测试用例模块')
     sub_module: Mapped[str] = mapped_column(String(255), nullable=True, doc='测试用例子模块')
-    name: Mapped[str] = mapped_column(String(255), nullable=True, doc='测试用例名称')
+    title: Mapped[str] = mapped_column(String(255), nullable=True, doc='测试用例标题')
     description: Mapped[str] = mapped_column(String(255), nullable=True, doc='测试用例描述')
     case_relations: Mapped[list["ApiCaseDataRelation"]] = relationship(back_populates="test_case", order_by="ApiCaseDataRelation.order")
 
@@ -63,4 +63,6 @@ class ApiCaseDataRelation(Base):
     order: Mapped[int] = mapped_column(nullable=False, doc='执行顺序从0开始')
     data_id: Mapped[int] = mapped_column(ForeignKey('api_test_data.id'), doc='数据id')
     test_data: Mapped["ApiTestData"] = relationship(back_populates="data_relations", doc='关联的测试数据')
+    extract: Mapped[dict] = mapped_column(JSON, nullable=True, doc='提取字段')
+    validate_rules: Mapped[dict] = mapped_column(JSON, nullable=True, doc='校验字段')
     test_case: Mapped["ApiTestCase"] = relationship(back_populates="case_relations", doc='关联的测试用例')
