@@ -3,7 +3,7 @@
 # Time: 2026/9/23 17:05
 # Author:zhouxiaochuan
 # Description:
-from sqlalchemy import String, ForeignKey, JSON, Integer
+from sqlalchemy import String, ForeignKey, JSON, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
 
 
@@ -34,11 +34,15 @@ class ApiInfo(Base):
     __tablename__ = "api_info"
     id: Mapped[int] = mapped_column(Integer, autoincrement=True, primary_key=True, index=True, doc='主键ID')
     name: Mapped[str] = mapped_column(String(255), nullable=True, doc='API名称')
+    project_name: Mapped[str] = mapped_column(String(255), nullable=True, doc='项目名称')
+    module_name: Mapped[str] = mapped_column(String(255), nullable=True, doc='模块名称')
+    sub_module_name: Mapped[str] = mapped_column(String(255), nullable=True, doc='子模块名称')
     description: Mapped[str] = mapped_column(String(255), nullable=True, doc='API描述')
     endpoint: Mapped[str] = mapped_column(String(255), nullable=True, doc='API端点')
     method: Mapped[str] = mapped_column(String(255), nullable=True, doc='请求方法')
     test_datas: Mapped[list["ApiTestData"]] = relationship(back_populates="api_info")
     response_model: Mapped[str] = mapped_column(String(255), nullable=True, doc='响应模型')
+    swagger_md_text: Mapped[str] = mapped_column(Text, nullable=True, doc='SwaggerMarkdown文本')
 
 class ApiTestCase(Base):
     """

@@ -9,11 +9,14 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "allure-pytest>=2.16.2",
+    "deepagents>=0.7.21",
     "dotenv>=0.9.9",
     "fastmcp>=4.0.5",
+    "gradio>=6.29.0",
     "jsonpath>=0.82.2",
     "jsonpath-ng>=1.8.0",
     "langchain>=1.4.2",
+    "langchain-deepseek>=1.1.1",
     "langchain-mcp-adapters>=0.3.1",
     "langchain-openai>=1.6.4",
     "langchain-qwq>=0.3.5",

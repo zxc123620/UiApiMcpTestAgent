@@ -6,15 +6,9 @@
 
 from langchain_qwq import ChatQwen
 
-llm = ChatQwen(
+qwen_llm = ChatQwen(
     model="qwen35b",
     max_tokens=3_000,
     timeout=None,
     max_retries=2,
-    # other params...
 )
-
-# 运行智能体
-# agent.invoke(
-#     {"messages": [{"role": "user", "content": "what is the weather in sf"}]}
-# )
