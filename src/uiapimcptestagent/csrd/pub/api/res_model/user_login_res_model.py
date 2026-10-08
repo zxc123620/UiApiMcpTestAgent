@@ -8,7 +8,7 @@
 # Time:2026/6/15 16:01
 # Author:zhouxiaochuan
 # Description:
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from pydantic import BaseModel
 
@@ -100,4 +100,4 @@ class UserLoginResModel(BaseCsrdResponseModel):
     """
     用户登录返回模型
     """
-    data: Optional[LoginDataModel]
+    data: Optional[Union[LoginDataModel, str]] = None

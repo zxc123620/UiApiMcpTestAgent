@@ -17,6 +17,14 @@ class StringMethodExecutor(DataProcess):
     methods = {}
 
     @classmethod
+    def get_func_doc(cls):
+        """获取方法文档"""
+        result = []
+        for name, func in cls.methods.items():
+            result.append({"方法名称": name, "文档描述": func.__doc__})
+        return result
+
+    @classmethod
     def register(cls, name):
         """注册方法"""
 

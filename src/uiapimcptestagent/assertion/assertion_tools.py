@@ -11,6 +11,8 @@ import allure
 import jsonpath
 import requests
 
+from uiapimcptestagent.ai.agents.test_assert_agent import TestAssertAgent
+from uiapimcptestagent.ai.ai_res_model.test_assert_res_model import ApiTestAssertResModel
 from uiapimcptestagent.assertion.assertion_errors import ProjectAssertionError
 
 logger = logging.getLogger("api")
@@ -69,16 +71,46 @@ class APIAssertionTools:
         logger.info(f"Response time verified: {elapsed:.2f}s")
 
     @classmethod
+    def ai_judge(cls,  expected_data: Any, actual_data: Any):
+        """
+        使用AI判断预期值是否匹配实际值
+
+        Args:
+            expected_data: 期望的数据
+            actual_data: 实际的数据
+
+        Returns:
+
+        """
+
+        content = f"预期结果: {expected_data}, 实际结果: {actual_data}"
+        result = TestAssertAgent().invoke(content=content)
+        logger.info(f"Ai判断言结果: {result["messages"][-1].content}, type: {type(result["messages"][-1].content)}")
+        struct_res: ApiTestAssertResModel = ApiTestAssertResModel(**json.loads(result["messages"][-1].content))
+        assert struct_res.pass_, f"AI断言失败: {struct_res.reason}"
+
+    @classmethod
     def assert_data_field(cls, expected_data: Any, actual_data: Any):
         """
         递归验证字典字段值
-        :param expected_data: 期望的数据
-        :param actual_data: 实际的数据
-        :return: None
+
+        Args:
+            expected_data: 期望的数据
+            actual_data: 实际的数据
+
+        Returns:
+
         """
+        logger.info(f"验证字段值: {expected_data} -> {actual_data}")
         # 如果指定了期望值，进行验证
         if isinstance(expected_data, (str, int, float, bool)):
             # 常量值验证
+            # if isinstance(expected_data, str ) and expected_data.lower().startswith("ai."):
+            #     content = f"预期结果: {expected_data}, 实际结果: {actual_data}"
+            #     result = TestAssertAgent().invoke(content=content)
+            #     struct_res:ApiTestAssertResModel = result["structured_response"]
+            #     assert struct_res.pass_, f"AI断言失败: {struct_res.reason}"
+            # else:
             assert actual_data == expected_data, f"值不匹配: 期望值 {expected_data}, 实际值 {actual_data}"
         elif isinstance(expected_data, list):
             # 列表值验证
@@ -89,8 +121,20 @@ class APIAssertionTools:
             # 预期是一个字典,但是实际上一个字典
             for key, value in expected_data.items():
                 # 递归验证字段
-                assert key in actual_data.keys(), f"字段 '{actual_data}'缺少键 {key}"
-                cls.assert_data_field(expected_data=value, actual_data=actual_data[key])
+                act_key = key
+                ai_judge = False
+                # 判断是否需要AI判断
+                if isinstance(key ,str) and key.lower().startswith("ai."):
+                    act_key = key[3:]
+                    ai_judge = True
+                # 验证字段是否存在
+                assert act_key in actual_data.keys(), f"字段 '{actual_data}'缺少键 {act_key}"
+                # 如果需要AI判断,则使用AI判断
+                if ai_judge:
+                    cls.ai_judge(expected_data=value, actual_data=actual_data[act_key])
+                # 否则,递归验证字段值
+                else:
+                    cls.assert_data_field(expected_data=value, actual_data=actual_data[act_key])
 
     @classmethod
     @allure.step("验证响应指定字段数据中有没有预期的字段值")
@@ -144,28 +188,29 @@ class APIAssertionTools:
         :param expected_dict: 期望的字典
         :return: bool
         """
+        false_reason = []
         try:
             # 本级别验证字段
             cls.assert_data_field(expected_data=expected_dict, actual_data=actual_data_dict)
             # 验证通过
-            return True
-        except AssertionError:
+            return True, false_reason
+        except AssertionError as e:
             # 当前层级不匹配，继续查找子项
-            pass
+            false_reason.append(e)
         # 没有验证通过，继续递归验证子项
         for data_key, data_value in actual_data_dict.items():
             if isinstance(data_value, dict):
                 # 如果data_dict字典里面有一项的值里面是字典，则递归验证
                 if cls.loop_validate_contains_dict(data_value, expected_dict):
-                    return True
+                    return True, false_reason
             elif isinstance(data_value, list):
                 # 如果data_dict字典里面有一项的值里面是列表，则挨个验证列表中的每个子元素
                 for item in data_value:
                     if isinstance(item, dict):
                         # 列表中每一项都是字典，递归验证
                         if cls.loop_validate_contains_dict(item, expected_dict):
-                            return True
-        return False
+                            return True, false_reason
+        return False, false_reason
 
     @classmethod
     @allure.step("验证响应包含预期字典")
@@ -181,7 +226,8 @@ class APIAssertionTools:
             data = cls.get_resp_json(response)
         else:
             data = response
-        assert cls.loop_validate_contains_dict(data, expected_dict), f"验证失败: 响应中的数据没有匹配到{expected_dict}"
+        is_pass, false_reason = cls.loop_validate_contains_dict(data, expected_dict)
+        assert is_pass, f"验证失败: 响应中的数据没有匹配到{expected_dict}, 原因: {false_reason}"
 
     @classmethod
     @allure.step("使用jsonpath验证响应包含预期字典")

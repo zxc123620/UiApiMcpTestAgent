@@ -4,11 +4,9 @@ from pathlib import Path
 
 import dotenv
 
-
+from uiapimcptestagent.config import current_dir_path
 from uiapimcptestagent.db.engine import db_engine
 from uiapimcptestagent.db.tables import Base
-
-current_dir_path = Path(".").resolve().parent
 
 def init_env():
     """
@@ -21,7 +19,7 @@ def init_logger_config():
     """
     初始化日志配置
     """
-    log_dir_path = current_dir_path / "logs"
+    log_dir_path = current_dir_path.parent / "logs"
     if not log_dir_path.exists():
         log_dir_path.mkdir()
     log_config_data = {
@@ -118,17 +116,7 @@ def init_db_tables():
     else:
         logging.info("数据库表已存在")
 
-def init_api_res_model():
-    """
-    初始化API响应模型
-    Returns:
-
-    """
-    from uiapimcptestagent.tools.base_function_tool import BaseFunctionTool
-    from uiapimcptestagent.csrd.tools.csrd_func_tool import CsrdFuncTool
-    from uiapimcptestagent.csrd.pub.api.res_model.user_login_res_model import UserLoginResModel
-
 init_env()
 init_logger_config()
 init_db_tables()
-init_api_res_model()
+# init_api_res_model()

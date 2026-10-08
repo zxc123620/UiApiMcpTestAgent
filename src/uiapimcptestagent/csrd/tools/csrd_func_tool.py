@@ -22,15 +22,15 @@ class CsrdFuncTool:
     Csrd功能助手类
     """
     @staticmethod
-    @StringMethodExecutor.register("csrd_login_data_encrypt")
-    def csrd_login_data_encrypt(username, password, captcha_code=None, captcha_request=None) -> str:
+    @StringMethodExecutor.register("login_data_encrypt")
+    def login_data_encrypt(username, password, captcha_code=None, captcha_request=None) -> str:
         """
-        登陆信息加密
+        登陆信息RSA加密
         Args:
             username: 用户名
             password: 密码
-            captcha_code: 验证码
-            captcha_request: 验证码请求参数
+            captcha_code: 验证码,可不传,默认1
+            captcha_request: 验证码请求参数,可不传,默认1
 
         Returns:
 

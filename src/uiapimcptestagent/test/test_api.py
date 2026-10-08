@@ -3,6 +3,7 @@
 # Time: 2026/9/30 14:48
 # Author:zhouxiaochuan
 # Description:
+import logging
 import os
 import uuid
 
@@ -41,10 +42,10 @@ class TestApi:
         for api_test_data_relation in api_test_data_relations:
             # 配置allure报告
             case_model = api_test_data_relation.test_case
-            allure.dynamic.feature(case_model.module)
-            allure.dynamic.story(case_model.sub_module)
-            allure.dynamic.description(case_model.description)
+            allure.dynamic.feature(case_model.module_name)
+            allure.dynamic.story(case_model.sub_module_name)
             allure.dynamic.title(case_model.title)
+            allure.dynamic.description(case_model.description)
             api_test_data = api_test_data_relation.test_data
             # 从注册器中获取响应模型
             response_model = API_RESPONSE_MODEL_REGISTRY.get(api_test_data.api_info.response_model, None)
@@ -58,13 +59,13 @@ class TestApi:
                 response_model=response_model,
             )
             # 提取字段
-            if api_test_data_relation.extract is None:
-                continue
             res_json = res.validated_data.model_dump()
-            extract_resdata(api_test_data_relation.extract, res_json)
+            if api_test_data_relation.extract is not None:
+                logging.info(f"提取字段: {api_test_data_relation.extract}")
+                extract_resdata(api_test_data_relation.extract, res_json)
             # 校验字段
-            if api_test_data_relation.validate_rules is None:
-                continue
-            failed_rules = AssertionEngine.run(response=res_json, rules=api_test_data_relation.validate_rules)
-            if len(failed_rules) > 0:
-                raise ProjectAssertionError(f"校验失败: {failed_rules}")
+            if api_test_data_relation.validate_rules is not None:
+                logging.info(f"校验字段: {api_test_data_relation.validate_rules}")
+                failed_rules = AssertionEngine.run(response=res_json, rules=api_test_data_relation.validate_rules)
+                if len(failed_rules) > 0:
+                    raise ProjectAssertionError(f"校验失败: {failed_rules}")

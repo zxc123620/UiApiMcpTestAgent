@@ -25,9 +25,13 @@ class BaseFunctionTool:
     def get_random_str(data: str = None, length: int = 8) -> str:
         """
         获取随机字符串
-        :param data: 数据源 默认为字母和数字
-        :param length: 字符串长度
-        :return: 随机字符串
+        Args:
+            data: 数据源 默认为字母和数字
+            length: 字符串长度,默认8位字符串
+
+        Returns:
+            随机字符串
+
         """
         data = data if data else string.ascii_letters + string.digits
         return ''.join(random.choices(data, k=length))
@@ -37,8 +41,12 @@ class BaseFunctionTool:
     def get_random_int(length: int = 8) -> int:
         """
         获取随机整数
-        :param length: 整数长度
-        :return: 随机整数
+        Args:
+            length: 整数长度,默认8位
+
+        Returns:
+            随机整数
+
         """
         return int(''.join(random.choices(string.digits, k=length)))
 
@@ -47,7 +55,8 @@ class BaseFunctionTool:
     def get_uuid() -> str:
         """
         获取uuid
-        :return: uuid
+        Returns:
+            uuid
         """
         return str(uuid.uuid1().hex)
 
@@ -56,7 +65,8 @@ class BaseFunctionTool:
     def get_datetime() -> str:
         """
         获取当前时间
-        :return: 当前时间
+        Returns:
+            当前时间
         """
         return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -65,19 +75,25 @@ class BaseFunctionTool:
     def md5_encrypt(data: str) -> str:
         """
         md5加密
-        :param data: 数据
-        :return: md5加密后的数据
+        Args:
+            data: 数据
+
+        Returns:
+            md5加密后的数据
         """
         return hashlib.md5(data.encode()).hexdigest()
 
 
     @staticmethod
     @StringMethodExecutor.register("des_encrypt")
-    def des_encrypt(data: str):
+    def des_encrypt(data: str) -> str:
         """
         des加密
-        :param data: 数据
-        :return: des加密后的数据
+        Args:
+            data: 数据
+
+        Returns:
+            des加密后的数据
         """
         # data = data.encode("utf-8")
         # des = DES.new(key=b"12345678", iv=b'\x00' * 8, mode=DES.MODE_CBC)
@@ -96,9 +112,13 @@ class BaseFunctionTool:
 
     # ========== 生成 RSA 密钥对 ==========
     @staticmethod
-    @StringMethodExecutor.register("generate_rsa_keys")
-    def generate_rsa_keys():
-        """生成 RSA 密钥对"""
+    # @StringMethodExecutor.register("generate_rsa_keys")
+    def generate_rsa_keys() -> tuple:
+        """
+        生成 RSA 密钥对
+        Returns:
+            RSA 私钥和公钥（PEM格式）
+        """
         key = RSA.generate(2048)
         _private_key = key.export_key().decode('utf-8')
         _public_key = key.publickey().export_key().decode('utf-8')
@@ -107,7 +127,7 @@ class BaseFunctionTool:
 
     # ========== RSA + Base64 加密 ==========
     @staticmethod
-    @StringMethodExecutor.register("rsa_encrypt")
+    # @StringMethodExecutor.register("rsa_encrypt")
     def rsa_encrypt(data: str, public_key: str) -> str:
         """
         RSA 加密 + Base64 编码
@@ -135,7 +155,7 @@ class BaseFunctionTool:
 
     # ========== Base64 解码 + RSA 解密 ==========
     @staticmethod
-    @StringMethodExecutor.register("rsa_decrypt")
+    # @StringMethodExecutor.register("rsa_decrypt")
     def rsa_decrypt(encrypted_b64: str, private_key: str) -> str:
         """
         Base64 解码 + RSA 解密
@@ -172,11 +192,12 @@ class BaseFunctionTool:
     #     return captcha_text
 
     @staticmethod
-    @StringMethodExecutor.register("random_hex_color")
+    # @StringMethodExecutor.register("random_hex_color")
     def random_hex_color() -> str:
         """
         获取随机十六进制颜色
-        :return: 随机十六进制颜色
+        Returns:
+            随机十六进制颜色
         """
         return f"#{random.randint(0, 0xFFFFFF):06X}"
     #

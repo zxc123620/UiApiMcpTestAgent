@@ -6,11 +6,11 @@
 from enum import IntEnum, Enum, StrEnum
 
 
-class CsrdPubApiResultCode(IntEnum):
-    SUCCESS = 200
-    CAPTCHA_ERROR = 500  # 验证码错误会返回这个
-    UNKNOWN = 201  # 未知错误我还不知道这个是什么意
-    HANDLE_SUCCESS = 0  # 操作成功
+class CsrdPubApiResultCode(StrEnum):
+    SUCCESS = '200'
+    CAPTCHA_ERROR = '500'  # 验证码错误会返回这个
+    UNKNOWN = '201'  # 未知错误我还不知道这个是什么意思
+    HANDLE_SUCCESS = '0'  # 操作成功
 
 
 CSRD_P_RESULT_CODES = [item.value for item in CsrdPubApiResultCode]

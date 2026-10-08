@@ -1,0 +1,11 @@
+{
+  "name": "自动化测试结果",
+  "plugins": {
+      "awesome": {
+        "options": {
+          "reportLanguage": "zh",
+          "groupBy": ["epic", "feature", "story"]
+        }
+      }
+    }
+}

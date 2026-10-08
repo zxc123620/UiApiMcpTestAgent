@@ -18,7 +18,7 @@ class BaseCsrdResponseModel(BaseModel):
     """
     用户基础返回模型
     """
-    code: int
+    code: str
     data: Optional[Union[dict, list, bool, str]]
     message: Optional[str] = None
     status: str

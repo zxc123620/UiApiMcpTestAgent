@@ -23,6 +23,8 @@ class ApiTestData(Base):
     api_info_id: Mapped[int] = mapped_column(ForeignKey("api_info.id"), doc='关联的API信息ID')
     data: Mapped[dict] = mapped_column(JSON, nullable=True, doc='请求数据')
     params: Mapped[dict] = mapped_column(JSON, nullable=True, doc='请求参数')
+    module_name: Mapped[str] = mapped_column(String(255), nullable=True, doc='模块名称')
+    sub_module_name: Mapped[str] = mapped_column(String(255), nullable=True, doc='子模块名称')
 
     data_relations: Mapped[list["ApiCaseDataRelation"]] = relationship(back_populates="test_data")
     api_info: Mapped['ApiInfo'] = relationship(back_populates="test_datas")
@@ -51,8 +53,8 @@ class ApiTestCase(Base):
     __tablename__ = "api_test_case"
     id: Mapped[int] = mapped_column(Integer, autoincrement=True, primary_key=True, index=True, doc='主键ID')
     key: Mapped[str] = mapped_column(String(255), nullable=False,index=True, doc='测试用例键')
-    module: Mapped[str] = mapped_column(String(255), nullable=True, doc='测试用例模块')
-    sub_module: Mapped[str] = mapped_column(String(255), nullable=True, doc='测试用例子模块')
+    module_name: Mapped[str] = mapped_column(String(255), nullable=True, doc='测试用例模块')
+    sub_module_name: Mapped[str] = mapped_column(String(255), nullable=True, doc='测试用例子模块')
     title: Mapped[str] = mapped_column(String(255), nullable=True, doc='测试用例标题')
     description: Mapped[str] = mapped_column(String(255), nullable=True, doc='测试用例描述')
     case_relations: Mapped[list["ApiCaseDataRelation"]] = relationship(back_populates="test_case", order_by="ApiCaseDataRelation.order")
@@ -70,3 +72,29 @@ class ApiCaseDataRelation(Base):
     extract: Mapped[dict] = mapped_column(JSON, nullable=True, doc='提取字段')
     validate_rules: Mapped[dict] = mapped_column(JSON, nullable=True, doc='校验字段')
     test_case: Mapped["ApiTestCase"] = relationship(back_populates="case_relations", doc='关联的测试用例')
+
+class AiLLmModels(Base):
+    """
+    Ai LLM模型表
+    """
+    __tablename__ = "ai_llm_models"
+    id: Mapped[int] = mapped_column(Integer, autoincrement=True, primary_key=True, index=True, doc='主键ID')
+    name: Mapped[str] = mapped_column(String(255), nullable=False,index=True, doc='Ai LLM模型名称')
+    model_name: Mapped[str] = mapped_column(String(255), nullable=True, doc='指定具体模型名称')
+    max_tokens: Mapped[int] = mapped_column(Integer, nullable=True, doc='最大token数')
+    max_retries: Mapped[int] = mapped_column(Integer, nullable=True, doc='最大重试次数')
+    api_key: Mapped[str] = mapped_column(String(255), nullable=True, doc='API密钥')
+    base_url: Mapped[str] = mapped_column(String(255), nullable=True, doc='基础URL')
+    description: Mapped[str] = mapped_column(String(255), nullable=True, doc='模型描述')
+    config: Mapped[dict] = mapped_column(JSON, nullable=True, doc='模型配置')
+
+class AiAgents(Base):
+    """
+    Ai智能体表
+    """
+    __tablename__ = "ai_agents"
+    id: Mapped[int] = mapped_column(Integer, autoincrement=True, primary_key=True, index=True, doc='主键ID')
+    name: Mapped[str] = mapped_column(String(255), nullable=False,index=True, doc='智能体名称')
+    description: Mapped[str] = mapped_column(String(255), nullable=True, doc='智能体描述')
+    type: Mapped[str] = mapped_column(String(255), nullable=True, doc='智能体类型')
+    config: Mapped[dict] = mapped_column(JSON, nullable=True, doc='智能体配置')

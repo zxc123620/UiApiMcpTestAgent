@@ -4,4 +4,8 @@
 # Author:zhouxiaochuan
 # Description:
 from sqlalchemy import create_engine
-db_engine = create_engine("sqlite:///test_data.db", echo=True)
+
+from uiapimcptestagent import current_dir_path
+
+db_path = current_dir_path / "test_data.db"
+db_engine = create_engine(f"sqlite:///{db_path}", echo=True)

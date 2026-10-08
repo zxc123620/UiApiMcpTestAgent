@@ -8,11 +8,15 @@
 
 import pytest
 
-from uiapimcptestagent.ai.agents.case_genrate_agent.chat_page import ChatPageThread
+from uiapimcptestagent import current_dir_path
+from uiapimcptestagent.ai.chat.chat_page import ChatPageThread
+from uiapimcptestagent.config import project_path
 
+test_path = project_path / "test/"
+allure_path = current_dir_path.parent / "allure-results"
 
 def run():
-    pytest.main(['-vs', "./test/", "--alluredir=../allure-results", "--clean-alluredir"])
+    pytest.main(['-vs', test_path.as_posix(), "--alluredir", allure_path.as_posix(), "--clean-alluredir"])
 
 def demo():
     chart_page = ChatPageThread()
@@ -22,4 +26,4 @@ def demo():
     chart_page.join()
 
 
-demo()
+run()

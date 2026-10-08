@@ -18,6 +18,18 @@ LOGIN_CASE_KEY = "user.login.success"
 def login():
     pass
 
+
+@pytest.fixture(scope="session", autouse=True)
+def init_api_res_model():
+    """
+    初始化API响应模型
+    Returns:
+
+    """
+    from uiapimcptestagent.tools.base_function_tool import BaseFunctionTool
+    from uiapimcptestagent.csrd.tools.csrd_func_tool import CsrdFuncTool
+    from uiapimcptestagent.csrd.pub.api.res_model.user_login_res_model import UserLoginResModel
+
 def pytest_addoption(parser):
     """
     添加自定义命令行参数

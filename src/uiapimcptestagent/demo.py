@@ -3,50 +3,25 @@
 # Time: 2026/10/2 22:18
 # Author:zhouxiaochuan
 # Description:
-import gradio as gr
-from gradio import ChatMessage
-import time
-
-sleep_time = 0.5
-
-def simulate_thinking_chat(message, history):
-    start_time = time.time()
-    response = ChatMessage(
-        content="",
-        metadata={"title": "_Thinking_ step-by-step", "id": 0, "status": "pending"}
-    )
-    yield response
-
-    thoughts = [
-        "First, I need to understand the core aspects of the query...",
-        "Now, considering the broader context and implications...",
-        "Analyzing potential approaches to formulate a comprehensive answer...",
-        "Finally, structuring the response for clarity and completeness..."
-    ]
-
-    accumulated_thoughts = ""
-    for thought in thoughts:
-        time.sleep(sleep_time)
-        accumulated_thoughts += f"- {thought}\n\n"
-        response.content = accumulated_thoughts.strip()
-        yield response
-
-    response.metadata["status"] = "done"
-    response.metadata["duration"] = time.time() - start_time
-    yield response
-
-    response = [
-        response,
-        ChatMessage(
-            content="Based on my thoughts and analysis above, my response is: This dummy repro shows how thoughts of a thinking LLM can be progressively shown before providing its final answer."
-        )
-    ]
-    yield response
+from uiapimcptestagent.db.process.string_method_executor import StringMethodExecutor
 
 
-demo = gr.ChatInterface(
-    simulate_thinking_chat,
-    title="Thinking LLM Chat Interface 🤔",
-)
+@StringMethodExecutor.register("method")
+def method(a,b,c):
+    """
+    方法描述
+    用于打印参数a、b、c的值
+    Args:
+        a: 参数a的值
+        b: 参数b的值
+        c: 参数c的值
 
-demo.launch()
+    Returns:
+
+    """
+    print(a)
+    print(b)
+    print(c)
+
+
+print(StringMethodExecutor.get_func_doc())
