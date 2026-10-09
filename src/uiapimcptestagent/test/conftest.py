@@ -40,7 +40,7 @@ def pytest_addoption(parser):
 
     """
     parser.addoption("--module", action="store", required=False,default="all", help="测试用例模块")
-    parser.addoption("--sub_module", action="store", required=False,default="all", help="测试用例子模块")
+    # parser.addoption("--sub_module", action="store", required=False,default="all", help="测试用例子模块")
     parser.addoption("--title", action="store", required=False,default="all", help="测试用例标题")
 
 
@@ -53,19 +53,21 @@ def pytest_generate_tests(metafunc):
     Returns:
 
     """
-    module = metafunc.config.getoption("module")
-    sub_module = metafunc.config.getoption("sub_module")
+    module_str = metafunc.config.getoption("module")
+    module_list = module_str.split(" ")
+    module_list = [ module.replace(' ', '') for module in module_list if str(module).replace(' ', '') != " "]
+    # sub_module = metafunc.config.getoption("sub_module")
     title = metafunc.config.getoption("title")
     case_ids = []
     with Session(db_engine) as session:
         # 获取测试用例
         stmt = select(ApiTestCase)
-        if module != "all":
-            stmt = stmt.where(ApiTestCase.module == module)
-        if sub_module != "all":
-            stmt = stmt.where(ApiTestCase.sub_module == sub_module)
+        if module_str != "all":
+            stmt = stmt.where(ApiTestCase.module_name.in_(module_list))
+        # if sub_module != "all":
+        #     stmt = stmt.where(ApiTestCase.sub_module_name == sub_module)
         if title != "all":
-            stmt = stmt.where(ApiTestCase.title == title)
+            stmt = stmt.where(ApiTestCase.title.like(f"%{title}%"))
         api_test_cases = session.scalars(stmt).all()
         case_ids = [ api_test_case.key for api_test_case in api_test_cases]
     # 添加测试用例参数化

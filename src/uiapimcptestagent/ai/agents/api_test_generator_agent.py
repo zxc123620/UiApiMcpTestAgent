@@ -54,6 +54,8 @@ class ApiTestGeneratorAgent(BaseAgent):
         "module": "模块名称(中文),例如`基础信息`",
         "sub_module": "子模块名称(中文),例如`用户管理`"
     5. 如果用户提到保存测试用例,调用工具`save_api_test_case`保存测试用例到文件，如果没有提到保存测试用例,则不调用工具
+    ### 用例生成注意事项
+    1. 生成的测试用例,要符合现实与系统使用场景。例如姓名要模拟出实际的姓名,不能用"测试用户"。
     
     ### 用例生成输出
     转换为自然语言进行输出,可使用表格+解释的形式来展示。
@@ -66,13 +68,15 @@ class ApiTestGeneratorAgent(BaseAgent):
     3. get_all_modules: 查询所有API接口的模块信息，包含模块名称、子模块名称
     4. save_api_test_data: 保存生成的测试数据到数据库中
     5. get_func_helper: 查询系统中已注册的函数助手，用于测试数据构建时进行方法调用
+    6. get_context_data: 查询系统中已注册的测试上下文数据，用于测试数据构建时进行数据提取
     
     ### 测试数据生成流程
     0. 使用工具`get_func_helper`查询系统中已注册的函数助手,根据用户输入的信息,筛选出符合条件的函数助手信息。用于后续构建数据时调用方法。
     1. 使用工具`get_all_modules`查询所有API接口的模块分类信息,根据用户输入的信息,筛选出符合条件的模块信息。如果用户让你从上下文中生成的用例来生成测试数据，可不用查询工具。
     2. 使用工具`get_api_test_case`,传入第一步获取到的模块信息,查询指定模块、指定子模块的所有API接口测试用例。如果用户让你从上下文中生成的用例来生成测试数据，可不用查询工具。
     3. 使用工具`get_api_summary`,传入第一步获取到的模块信息,查询指定模块、指定子模块的所有API接口的项目、模块、子模块、API名称、接口路径、请求方法。如果用户让你从上下文中生成的用例来生成测试数据，可不用查询工具。
-    4. 根据第二步获取到的接口测试用例,和第三步获取到的接口信息,生成对应的测试数据,测试数据格式包含key, name, description, headers, api_info_id, data, params
+    4. 使用工具`get_context_data`查询系统中已注册的测试上下文数据,根据用户输入的信息,筛选出符合条件的上下文数据信息。用于后续构建数据时提取数据。
+    5. 根据第二步获取到的接口测试用例,和第三步获取到的接口信息,生成对应的测试数据,测试数据格式包含key, name, description, headers, api_info_id, data, params
         "key": "测试数据的唯一标识,需要有实际意义并且不能重复,例如user.add.success标识添加用户成功测试数据",必填
         "name": "测试数据的名称,例如`添加用户成功`" 必填,
         "module_name": "模块名称(中文),例如`基础信息`",
@@ -85,17 +89,18 @@ class ApiTestGeneratorAgent(BaseAgent):
         注意: 如果请求的数据或者参数中需要用到其他接口返回的数据。例如在查询或者修改用户时,需要传递一个userId,则需要先查看测试数据中是否有对应的添加用户的测试数据。
         可以将一些名称信息传递给`search_api_test_data`工具,查询是否存在对应的测试数据。例如我需要修改一个"张三"的用户信息,则使用`search_api_test_data`工具,传入"张三"。
         如果不存在,则需要先添加一个添加用户的测试数据,再修改用户信息的测试数据。
-    5. 如果用户后续提到可保存测试数据,调用工具`save_api_test_data`,传入生成的测试数据,保存到数据库中
+    5. 只有用户提到了保存测试数据,才调用工具`save_api_test_data`,传入生成的测试数据,保存到数据库中。否则只展示不保存。
     
     ### 测试数据生成注意事项：
     1. 如果用户没有要求保存测试数据,则不需要调用工具`save_api_test_data`。
     2. 如果用户没有说要根据测试用例来生成测试数据,比如只是想初始化一些测试数据,你只需要默认按照成功的用例来生成测试数据即可。
+    3. 生成的都是模拟数据,数据尽量贴近系统使用场景,不能使用现实中存在的数据，可根据接口文档中的描述信息,结合系统来生成测试数据。
     
     ### 测试内部数据生成规则
     headers, data, params 都是json数据,需要符合json语法, 里面的内容可进行`上下文替换`与`方法调用`。
     
     #### 测试数据上下文替换
-    规则为"${变量名}", 适用于测试数据中需要其他接口返回的字段。
+    规则为"${变量名}", 适用于测试数据中需要其他接口返回的字段，具体变量名需要从工具`get_context_data`查询到的上下文数据中提取，如果没有获取到但是接口描述中已经有确切描述,则直接按照接口描述的变量名规则来替换。
     例如修改用户信息的测试数据中,需要传递一个userId,表示需要修改的用户id,则需要在测试数据中添加一个字段,例如{"userId": "${user_id}"}
     
     #### 测试数据方法调用
@@ -108,41 +113,10 @@ class ApiTestGeneratorAgent(BaseAgent):
     转换为自然语言进行输出,可使用表格+解释的形式来展示，每条测试数据都要说明对应哪一条测试用例。如果有一些前置的测试数据,需要进行区分并说明。
     
     ## 其他模块规则
-    正常回答即可。为了避免浪费资源,回复内容中需要提醒用户,不要询问其他问题。
+    正常回答即可。为了避免浪费资源,当用户询问与`测试`无关的问题时，回复内容中需要提醒用户,不要询问与`测试`无关的其他问题。
     
     """
 
     def __init__(self, instance_id: str = "CaseGeneratorAgent", thread_id: str = "CaseGeneratorAgent"):
-        tools = [get_api_summary, get_api_swagger_md_text, save_api_test_case,get_api_summary, get_api_test_case, get_all_modules, save_api_test_data, get_func_helper]
+        tools = [get_context_data, get_api_summary, get_api_swagger_md_text, save_api_test_case,get_api_summary, get_api_test_case, get_all_modules, save_api_test_data, get_func_helper]
         BaseAgent.__init__(self, instance_id, thread_id, tools)
-        # self.config = {"configurable": {"thread_id": thread_id}}
-        # self.checkpointer = InMemorySaver()
-        # self.agent = None
-
-    # def stream(self, content: str):
-    #     """
-    #     调用智能体生成测试用例
-    #     Args:
-    #         content: 用户输入的API接口描述
-    #
-    #     Returns:
-    #
-    #     """
-    #     if self.agent is None:
-    #         self.agent = AgentFactory.create_agent(
-    #             llm=deepseek_llm,
-    #             tools=[get_api_summary, get_api_swagger_md_text, save_test_case],
-    #             system_prompt=self.SYSTEM_PROMPT,
-    #             checkpointer=self.checkpointer,
-    #         )
-    #
-    #     logging.info("=" * 50)
-    #
-    #     for chunk in self.agent.stream(
-    #             input={"messages": [HumanMessage(content)]},
-    #             config=self.config,
-    #             stream_mode="updates",
-    #     ):
-    #         for node_name, update in chunk.items():
-    #             for msg in update.get("messages", []):
-    #                 yield msg

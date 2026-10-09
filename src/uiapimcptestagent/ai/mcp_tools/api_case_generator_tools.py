@@ -4,6 +4,7 @@
 # Author:zhouxiaochuan
 # Description:
 import logging
+from encodings import palmos
 from typing import Sequence, Optional
 
 from langchain.tools import tool
@@ -13,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from uiapimcptestagent import db_engine
 from uiapimcptestagent.db.process.string_method_executor import StringMethodExecutor
-from uiapimcptestagent.db.tables import ApiInfo, ApiTestCase, ApiTestData
+from uiapimcptestagent.db.tables import ApiInfo, ApiTestCase, ApiTestData, ApiCaseDataRelation
 
 
 @tool
@@ -77,20 +78,20 @@ def get_api_summary(module_name: Optional[str] = None, sub_module_name: Optional
     return result
 
 @tool
-def save_api_test_case(key: str, title: str, description: str, module: str, sub_module: str) -> str:
+def save_api_test_case(key: str, title: str, description: str, module_name: str, sub_module_name: str) -> str:
     """
     保存API接口的测试用例到数据库
     Args:
         key: 用例的唯一标识
         title: 用例的名称
         description: 用例的详细描述
-        module: 模块名称(中文)
-        sub_module: 子模块名称(中文)
+        module_name: 模块名称(中文)
+        sub_module_name : 子模块名称(中文)
 
     Returns:
         保存结果
     """
-    logging.info(f"保存测试用例: {key}, {title}, {description}, {module}, {sub_module}")
+    logging.info(f"保存测试用例: {key}, {title}, {description}, {module_name}, {sub_module_name}")
     try:
         with Session(db_engine) as session:
             session.add(
@@ -98,17 +99,19 @@ def save_api_test_case(key: str, title: str, description: str, module: str, sub_
                     key=key,
                     title=title,
                     description=description,
-                    module=module,
-                    sub_module=sub_module
+                    module_name=module_name,
+                    sub_module_name=sub_module_name
                 ))
             session.commit()
     except IntegrityError as e:
         # 比如唯一约束冲突
+        logging.error(e)
         return f"保存失败：{key} 可能已存在。错误：{e}"
     except Exception as e:
+        logging.error(e)
         return f"保存失败：{e}"
 
-    return f"成功保存测试用例: {key}, {title}, {description}, {module}, {sub_module}"
+    return f"成功保存测试用例: {key}, {title}, {description}, {module_name}, {sub_module_name}"
 
 @tool
 def get_api_test_case(module_name: Optional[str] = None, sub_module_name: Optional[str] = None) -> str:
@@ -134,7 +137,7 @@ def get_api_test_case(module_name: Optional[str] = None, sub_module_name: Option
         if db_results:
             result = f"共{len(db_results)}条测试用例\n"
             for index, db_result in enumerate(db_results):
-                result += f"第{index + 1}条测试用例: id={db_result.id},key={db_result.key}, 模块名称={db_result.module}, 子模块名称={db_result.sub_module}, 用例名称={db_result.title}, 用例描述={db_result.description}\n"
+                result += f"第{index + 1}条测试用例: id={db_result.id},key={db_result.key}, 模块名称={db_result.module_name}, 子模块名称={db_result.sub_module_name}, 用例名称={db_result.title}, 用例描述={db_result.description}\n"
     logging.info(result)
     return result
 
@@ -241,3 +244,24 @@ def get_func_helper():
     """
     logging.info("获取所有的函数帮助信息")
     return StringMethodExecutor.get_func_doc()
+
+
+@tool
+def get_context_data():
+    """
+    获取测试系统中所有的上下文数据
+    Returns:
+
+    """
+    logging.info("获取所有的上下文数据")
+    with Session(db_engine) as session:
+        stmt = select(ApiCaseDataRelation.extract).where(ApiCaseDataRelation.extract != "", ApiCaseDataRelation.extract.isnot(None))
+        db_results = session.scalars(stmt).all()
+        if db_results:
+            result = f"共{len(db_results)}个上下文数据\n"
+            for index, extract_datas in enumerate(db_results):
+                # logging.info(f"extract_datas：{extract_datas}")
+                for extract_data in extract_datas:
+                    result += f"上下文名称:{extract_data['name']}, 描述:{extract_data['description']}\n"
+    logging.info(result)
+    return result

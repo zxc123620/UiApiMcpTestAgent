@@ -25,6 +25,7 @@ class ApiTestDataGeneratorAgent(BaseAgent):
     3. get_all_modules: 查询所有API接口的模块信息，包含模块名称、子模块名称
     4. save_api_test_data: 保存生成的测试数据到数据库中
     5. get_func_helper: 查询系统中已注册的函数助手，用于测试数据构建时进行方法调用
+    6. save_api_test_case: 保存测试用例到文件
     
     # 流程
     测试数据生成流程如下:

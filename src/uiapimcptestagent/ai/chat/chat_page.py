@@ -89,12 +89,13 @@ class ChatPageThread(Thread):
                 if len(last_chat_msg.content) > 1024:
                     last_chat_msg.metadata["status"] = "done"
                     last_chat_msg.metadata["title"] = "✅ 推理完成"
-                yield response
+                yield response[:-1] # 只返回到上一条消息，不包含当前一条消息
             if len(response) > 0:
                 # 全部完成后，设置状态为done
                 response[-1].metadata["status"] = "done"
                 response[-1].metadata["title"] = "✅ 推理完成"
-            response.append(ChatMessage(content=last_content))
+            response.pop() # 移除最后一条消息
+            response.append(ChatMessage(content=last_content)) # 添加最后一条消息
             yield response
 
         except Exception as e:

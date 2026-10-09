@@ -6,13 +6,15 @@
 
 
 import logging
+import os
 from typing import Optional
 
 from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
 
 from uiapimcptestagent.ai.agent_factory import AgentFactory
-from uiapimcptestagent.ai.llm_models.deepseek_model import deepseek_llm
+from uiapimcptestagent.ai.llm_models.deepseek_model import get_deepseek_llm
+from uiapimcptestagent.ai.llm_models.qwen_model import get_qwen_llm
 from uiapimcptestagent.tools.singleton import Singleton
 
 
@@ -32,8 +34,15 @@ class BaseAgent(metaclass=Singleton):
     @property
     def agent(self):
         if self._agent is None:
+            llm_model_type = os.getenv("LLM_MODEL_TYPE", "deepseek")
+            if "deepseek" in llm_model_type.lower():
+                llm_ = get_deepseek_llm()
+            elif "qwen" in llm_model_type.lower():
+                llm_ = get_qwen_llm()
+            else:
+                raise ValueError(f"不支持的LLM模型类型: {llm_model_type}")
             self._agent = AgentFactory.create_agent(
-                llm=deepseek_llm,
+                llm=llm_,
                 tools=self.tools,
                 system_prompt=self.SYSTEM_PROMPT,
                 checkpointer=self.checkpointer,

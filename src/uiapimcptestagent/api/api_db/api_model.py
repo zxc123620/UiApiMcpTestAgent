@@ -22,6 +22,7 @@ class APiTestDataResExtract(BaseModel):
     handle: Optional[str] = Field( default=None, description='提取字段处理方法')
     handle_param: dict = Field( default_factory=lambda : {}, description='处理方法参数')
     actual: Optional[Union[list, dict, str, int, float, bool]] = Field( default=None, description='实际值')
+    description: str = Field(default="", description='提取字段描述')
 
 class ApiTestDataModel(BaseModel):
     """
