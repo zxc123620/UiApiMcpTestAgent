@@ -1,12 +1,15 @@
 import os
 import logging.config
-from pathlib import Path
 
 import dotenv
 
-from uiapimcptestagent.config import current_dir_path
+from uiapimcptestagent.config import current_dir_path, db_path
 from uiapimcptestagent.db.engine import db_engine
 from uiapimcptestagent.db.tables import Base
+import logging
+
+from uiapimcptestagent.tools.package_tool import auto_load_module
+
 
 def init_env():
     """
@@ -19,7 +22,7 @@ def init_logger_config():
     """
     初始化日志配置
     """
-    log_dir_path = current_dir_path.parent / "logs"
+    log_dir_path = current_dir_path / "logs"
     if not log_dir_path.exists():
         log_dir_path.mkdir()
     log_config_data = {
@@ -109,14 +112,23 @@ def init_db_tables():
     Returns:
 
     """
-    db_path = current_dir_path / "test_data.db"
     if not db_path.exists():
         Base.metadata.create_all(db_engine)
         logging.info("数据库表初始化完成")
     else:
         logging.info("数据库表已存在")
 
+
+def init_api_res_models():
+    """
+    初始化API响应模型
+    Returns:
+
+    """
+    package_name = os.getenv("API_RES_MODEL_PACKAGE_NAME", "models")
+    auto_load_module(package_name)
+
 init_env()
 init_logger_config()
 init_db_tables()
-# init_api_res_model()
+init_api_res_models()

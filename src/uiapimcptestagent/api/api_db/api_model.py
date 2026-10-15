@@ -32,8 +32,8 @@ class ApiTestDataModel(BaseModel):
     id: int = Field(..., description='ID')
     key: str = Field(..., description='测试数据键')
     name: str = Field(..., description='测试数据名称')
-    module_name: str = Field(..., description='测试模块名称')
-    sub_module_name: str = Field(..., description='测试子模块名称')
+    # module_name: str = Field(..., description='测试模块名称') # 使用ApiInfo.module_name
+    # sub_module_name: str = Field(..., description='测试子模块名称') # 使用ApiInfo.sub_module_name
     description: str = Field(default="", description='测试数据描述')
     # api_info_id: int = Field(..., description='关联的API信息ID')
     data: Optional[dict] = Field(default=None, description='请求数据')
@@ -42,6 +42,12 @@ class ApiTestDataModel(BaseModel):
     headers: Optional[dict] = Field(default=None, description='请求头')
     # data_relations: list[ApiCaseDataRelationModel] = Field(..., description='关联的测试用例数据关联表')
     api_info: ApiInfoModel = Field(..., description='关联的API信息')
+
+    extract: Optional[list[APiTestDataResExtract]] = Field(default=None, description='提取字段')
+    # [{"name":"userToken","jsonpath":"$.data.userToken","description": "Authorization鉴权码", "handle":"get_index","handle_param":{"index":0}}]
+    validate_rules: Optional[list[AssertionRules]] = Field(default=None, description='校验字段')
+
+
 
 
     @field_validator("params", "data", "headers")
@@ -73,7 +79,7 @@ class ApiInfoModel(BaseModel):
 
 class ApiTestCaseModel(BaseModel):
     """
-    API测试用例表
+    API测试用例表(暂时不用了)
     """
     model_config = ConfigDict(from_attributes=True)
     id: int = Field(..., description='ID')
@@ -86,7 +92,7 @@ class ApiTestCaseModel(BaseModel):
 
 class ApiCaseDataRelationModel(BaseModel):
     """
-    API测试用例数据关联表
+    API测试用例数据关联表(暂时不用了)
     """
     model_config = ConfigDict(from_attributes=True)
     id: int = Field(..., description='主键ID')

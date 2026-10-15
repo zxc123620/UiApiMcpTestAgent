@@ -7,6 +7,7 @@ import os
 import time
 import logging
 import uuid
+from dataclasses import dataclass
 from typing import Dict, Optional, Type
 from urllib.parse import urljoin
 
@@ -22,6 +23,12 @@ logger = logging.getLogger("api")
 
 # 禁用SSL警告
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+@dataclass
+class ApiResponse:
+    response: Optional[requests.Response] = None
+    failed_rules: Optional[list[str]] = None
+    validated_data: Optional[BaseModel] = None
 
 
 class BaseAPIClient:
@@ -93,9 +100,9 @@ class BaseAPIClient:
 
     @allure.step("发送HTTP请求")
     def request(self, method: Literal["GET", "POST", "PUT", "DELETE"],  endpoint: str,
-                expected_status_code: int = 200,
+                # expected_status_code: int = 200,
                 response_model: Optional[Type[BaseModel]] = None,
-                **kwargs):
+                **kwargs) -> ApiResponse:
         """
         发送HTTP请求并自动校验响应
         
@@ -111,6 +118,7 @@ class BaseAPIClient:
         Raises:
             AssertionError: 当状态码或响应数据不符合预期时
         """
+        api_res = ApiResponse()
         url = self._build_url(endpoint)
         
         # 合并headers
@@ -131,6 +139,7 @@ class BaseAPIClient:
         # 发送请求
         start_time = time.time()
         response = self.session.request(method, url, verify=False, **kwargs)
+        api_res.response = response
         elapsed_time = time.time() - start_time
         
         # 记录响应
@@ -138,14 +147,14 @@ class BaseAPIClient:
         logger.info(f"请求总共耗时: {elapsed_time:.2f}s")
         
         # 自动校验状态码
-        if response.status_code != expected_status_code:
-            error_msg = f"状态码不匹配: expected {expected_status_code}, got {response.status_code}"
-            logger.error(error_msg)
-            # try:
-            #     logger.error(f"响应体: {response.json()}")
-            # except requests.exceptions.JSONDecodeError:
-            #     logger.error(f"响应体: {response.text}")
-            raise AssertionError(error_msg)
+        # if response.status_code != expected_status_code:
+        #     error_msg = f"状态码不匹配: expected {expected_status_code}, got {response.status_code}"
+        #     logger.error(error_msg)
+        #     # try:
+        #     #     logger.error(f"响应体: {response.json()}")
+        #     # except requests.exceptions.JSONDecodeError:
+        #     #     logger.error(f"响应体: {response.text}")
+        #     raise AssertionError(error_msg)
         
         # 自动校验响应数据
         if response_model and response.status_code == 200:
@@ -154,7 +163,7 @@ class BaseAPIClient:
                 validated = response_model(**response_data)
                 logger.info(f"响应体校验通过模型验证: {response_model.__name__}")
                 # 将验证后的数据附加到response对象上
-                response.validated_data = validated
+                api_res.validated_data = validated
             except ValidationError  as e:
                 logger.error(f"响应体校验失败: {e}")
                 raise
@@ -164,45 +173,41 @@ class BaseAPIClient:
                 raise
 
         
-        return response
+        return api_res
+
     def get(self, endpoint: str, params: Optional[Dict] = None,
-            expected_status_code: int = 200,
+
             response_model: Optional[Type[BaseModel]] = None,
-            **kwargs) -> requests.Response:
+            **kwargs) -> ApiResponse:
         """发送GET请求"""
         return self.request('GET', endpoint, params=params, 
-                          expected_status_code=expected_status_code,
                           response_model=response_model, **kwargs)
 
     def post(self, endpoint: str, json: Optional[Dict] = None,
              expected_status_code: int = 200,
              response_model: Optional[Type[BaseModel]] = None,
-             **kwargs) -> requests.Response:
+             **kwargs) -> ApiResponse:
         """发送POST请求"""
         return self.request('POST', endpoint, json=json,
                           expected_status_code=expected_status_code,
                           response_model=response_model, **kwargs)
 
     def put(self, endpoint: str, json: Optional[Dict] = None,
-            expected_status_code: int = 200,
             response_model: Optional[Type[BaseModel]] = None,
-            **kwargs) -> requests.Response:
+            **kwargs) -> ApiResponse:
         """发送PUT请求"""
         return self.request('PUT', endpoint, json=json,
-                          expected_status_code=expected_status_code,
                           response_model=response_model, **kwargs)
 
-    def delete(self, endpoint: str, expected_status_code: int = 200, **kwargs) -> requests.Response:
+    def delete(self, endpoint: str, **kwargs) -> ApiResponse:
         """发送DELETE请求"""
-        return self.request('DELETE', endpoint, expected_status_code=expected_status_code, **kwargs)
+        return self.request('DELETE', endpoint, **kwargs)
 
     def patch(self, endpoint: str, json: Optional[Dict] = None,
-              expected_status_code: int = 200,
               response_model: Optional[Type[BaseModel]] = None,
-              **kwargs) -> requests.Response:
+              **kwargs) -> ApiResponse:
         """发送PATCH请求"""
         return self.request('PATCH', endpoint, json=json,
-                          expected_status_code=expected_status_code,
                           response_model=response_model, **kwargs)
 
     def set_header(self, key: str, value: str):
