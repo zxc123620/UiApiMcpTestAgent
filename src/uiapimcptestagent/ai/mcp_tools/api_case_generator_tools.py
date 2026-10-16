@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from uiapimcptestagent import db_engine
 from uiapimcptestagent.db.process.string_method_executor import StringMethodExecutor
-from uiapimcptestagent.db.tables import ApiInfo, ApiTestCase, ApiTestData, ApiCaseDataRelation
+from uiapimcptestagent.db.tables import ApiInfo, ApiTestCase, ApiTestData
 
 
 @tool
@@ -253,15 +253,15 @@ def get_context_data():
     Returns:
 
     """
-    logging.info("获取所有的上下文数据")
-    with Session(db_engine) as session:
-        stmt = select(ApiCaseDataRelation.extract).where(ApiCaseDataRelation.extract != "", ApiCaseDataRelation.extract.isnot(None))
-        db_results = session.scalars(stmt).all()
-        if db_results:
-            result = f"共{len(db_results)}个上下文数据\n"
-            for index, extract_datas in enumerate(db_results):
-                # logging.info(f"extract_datas：{extract_datas}")
-                for extract_data in extract_datas:
-                    result += f"上下文名称:{extract_data['name']}, 描述:{extract_data['description']}\n"
-    logging.info(result)
-    return result
+    # logging.info("获取所有的上下文数据")
+    # with Session(db_engine) as session:
+    #     stmt = select(ApiCaseDataRelation.extract).where(ApiCaseDataRelation.extract != "", ApiCaseDataRelation.extract.isnot(None))
+    #     db_results = session.scalars(stmt).all()
+    #     if db_results:
+    #         result = f"共{len(db_results)}个上下文数据\n"
+    #         for index, extract_datas in enumerate(db_results):
+    #             # logging.info(f"extract_datas：{extract_datas}")
+    #             for extract_data in extract_datas:
+    #                 result += f"上下文名称:{extract_data['name']}, 描述:{extract_data['description']}\n"
+    # logging.info(result)
+    return "无上下文数据"

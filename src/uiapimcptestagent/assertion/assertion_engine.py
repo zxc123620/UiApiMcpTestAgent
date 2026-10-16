@@ -64,8 +64,8 @@ class AssertionEngine:
 
         """
         path = rule.path
-        op = rule.op
-        expected = rule.value
+        op = rule.operator
+        expected = rule.expect_value
         actual = _extract(response, path)
 
         if op not in OPERATORS:

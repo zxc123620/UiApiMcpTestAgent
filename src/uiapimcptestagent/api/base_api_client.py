@@ -100,7 +100,6 @@ class BaseAPIClient:
 
     @allure.step("发送HTTP请求")
     def request(self, method: Literal["GET", "POST", "PUT", "DELETE"],  endpoint: str,
-                # expected_status_code: int = 200,
                 response_model: Optional[Type[BaseModel]] = None,
                 **kwargs) -> ApiResponse:
         """
@@ -109,7 +108,6 @@ class BaseAPIClient:
         Args:
             method: HTTP方法 (GET, POST, PUT, DELETE, etc.)
             endpoint: API端点
-            expected_status_code: 期望的HTTP状态码，默认200
             response_model: Pydantic模型类，用于校验响应数据
             **kwargs: 请求参数
             
