@@ -118,7 +118,6 @@ def init_db_tables():
     else:
         logging.info("数据库表已存在")
 
-
 def init_api_res_models():
     """
     初始化API响应模型
@@ -126,9 +125,21 @@ def init_api_res_models():
 
     """
     package_name = os.getenv("API_RES_MODEL_PACKAGE_NAME", "models")
+    logging.info(f"导入API响应模型包: {package_name}")
+    auto_load_module(package_name)
+
+def init_api_func_tools():
+    """
+    初始化API功能工具
+    Returns:
+
+    """
+    package_name = os.getenv("API_FUNC_TOOL_PACKAGE_NAME", "tools")
+    logging.info(f"导入API功能工具包: {package_name}")
     auto_load_module(package_name)
 
 init_env()
 init_logger_config()
 init_db_tables()
 init_api_res_models()
+init_api_func_tools()

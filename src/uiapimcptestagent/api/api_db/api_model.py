@@ -4,11 +4,11 @@
 # Author:zhouxiaochuan
 # Description:
 import logging
-from typing import Literal, Optional, Any
+from typing import Literal, Optional, Any, Union
 
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
-from uiapimcptestagent.assertion.assertion_rules import AssertionRules
+from uiapimcptestagent.assertion.assertion_rules import AssertionConfig
 from uiapimcptestagent.db.process.string_context_executor import StringContextExecutor
 from uiapimcptestagent.db.process.string_method_executor import StringMethodExecutor
 
@@ -31,19 +31,21 @@ class APiTestDataResExtract(BaseModel):
 
 class JudgeCriteriaItem(BaseModel):
     """
-    前置条件判断标准项
+    前置/后置条件判断标准项
     """
-    validate_rules: Optional[AssertionRules] = Field(default=None, description='校验字段规则')
+    assertion_config : Optional[AssertionConfig] = Field(default=None, description='校验字段规则配置')
     # handle_param: dict = Field( default_factory=lambda : {}, description='处理方法参数')
     steps_after_failure: list[str] = Field(default_factory=list,
-                                           description='前置条件判断失败后执行的步骤,执行什么测试数据键即api_test_data.key')
+                                           description='前置/后置条件判断失败后执行的步骤,执行什么测试数据键即api_test_data.key')
+    steps_after_success: list[str] = Field(default_factory=list,
+                                           description='前置/后置条件判断成功后执行的步骤,执行什么测试数据键即api_test_data.key')
 
 class JudgeCriteria(BaseModel):
     """
-    前置条件判断标准
+    前置/后置条件判断标准
     """
     test_data_key: str = Field(..., description='测试数据键即api_test_data.key')
-    judgment_criteria_items: list[JudgeCriteriaItem] = Field(default_factory=list, description='前置条件判断标准项')
+    judgment_criteria_items: list[JudgeCriteriaItem] = Field(default_factory=list, description='前置/后置条件判断标准项')
 
 class ContextKeyHas(BaseModel):
     """
@@ -53,9 +55,10 @@ class ContextKeyHas(BaseModel):
     steps_after_failure: list[str] = Field(default_factory=list,
                                            description='上下文键失败后执行的步骤,执行什么测试数据键')
 
-class PreRequisites(BaseModel):
+class Requisites(BaseModel):
     """
-    前置条件
+    前置/后置条件
+
     """
     context_key_has: Optional[list[ContextKeyHas]] = Field(default=None, description='上下文键有')
     api_res_exist: Optional[list[JudgeCriteria]] = Field(default=None, description='API响应判断标准')
@@ -67,7 +70,7 @@ class TestSteps(BaseModel):
     """
     test_data_key: str = Field(..., description='测试数据键即api_test_data.key')
     description: str = Field(default="", description='测试步骤描述')
-    validate_rules: Optional[list[AssertionRules]] = Field(default=None, description='校验字段')
+    assertion_config: Optional[AssertionConfig] = Field(default=None, description='校验字段')
 
 
 class ApiTestDataModel(BaseModel):
@@ -91,8 +94,6 @@ class ApiTestDataModel(BaseModel):
     extract: Optional[list[APiTestDataResExtract]] = Field(default=None, description='提取字段')
     # [{"name":"userToken","jsonpath":"$.data.userToken","description": "Authorization鉴权码", "handle":"get_index","handle_param":{"index":0}}]
     # validate_rules: Optional[list[AssertionRules]] = Field(default=None, description='校验字段')
-
-
 
 
     @field_validator("params", "data", "headers")
@@ -133,18 +134,20 @@ class ApiTestCaseModel(BaseModel):
     sub_module_name: str = Field(..., description='测试用例子模块')
     title: str = Field(..., description='测试用例标题')
     description: str = Field(..., description='测试用例描述')
-    pre_requisites: Optional[list[PreRequisites]] = Field(default=None, description='前置条件')
+    pre_requisites: Optional[list[Requisites]] = Field(default=None, description='前置条件')
     test_steps: list[TestSteps] = Field(..., description='测试步骤')
+    post_steps: Optional[list[Requisites]] = Field(default=None, description='后置步骤')
+    is_active: bool = Field(default=True, description='是否激活')
 
-
-class ApiCaseDataRelationModel(BaseModel):
-    """
-    API测试用例数据关联表(暂时不用了)
-    """
-    model_config = ConfigDict(from_attributes=True)
-    id: int = Field(..., description='主键ID')
-    order: int = Field(..., description='执行顺序从0开始')
-    test_data: ApiTestDataModel = Field(..., description='关联的测试数据')
-    extract: Optional[list[APiTestDataResExtract]] = Field(default=None, description='提取字段')
-    validate_rules: Optional[list[AssertionRules]] = Field(default=None, description='校验字段')
-    test_case: ApiTestCaseModel = Field(..., description='关联的测试用例')
+#
+# class ApiCaseDataRelationModel(BaseModel):
+#     """
+#     API测试用例数据关联表(暂时不用了)
+#     """
+#     model_config = ConfigDict(from_attributes=True)
+#     id: int = Field(..., description='主键ID')
+#     order: int = Field(..., description='执行顺序从0开始')
+#     test_data: ApiTestDataModel = Field(..., description='关联的测试数据')
+#     extract: Optional[list[APiTestDataResExtract]] = Field(default=None, description='提取字段')
+#     validate_rules: Optional[AssertionConfig] = Field(default=None, description='校验字段')
+#     test_case: ApiTestCaseModel = Field(..., description='关联的测试用例')

@@ -108,7 +108,8 @@ OPERATORS = {
     "startswith": _op_startswith, "endswith": _op_endswith,
     "between": _op_between,
     "is_empty": _op_is_empty, "not_empty": _op_not_empty,
-    "res_contains_data": APIAssertionTools.res_contains_data
+    "res_contains_data": APIAssertionTools.res_contains_data,
+    "res_contains_key": APIAssertionTools.res_contains_key,
     # "schema": _op_schema,
     # "eq_path": _op_eq_path,
 }

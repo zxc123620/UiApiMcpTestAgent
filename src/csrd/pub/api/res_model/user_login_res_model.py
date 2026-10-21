@@ -12,7 +12,7 @@ from typing import Optional, List, Union
 
 from pydantic import BaseModel
 
-from uiapimcptestagent.csrd.pub.api.res_model.base_csrd_response_model import BaseCsrdResponseModel
+from csrd.pub.api.res_model.base_csrd_response_model import BaseCsrdResponseModel
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 
@@ -46,15 +46,12 @@ class LoginDataModel(BaseModel):
     """
     userId: str
     userNo: Optional[str]
-    userJob: Optional[str]
     userName: str
     userPassword: Optional[str]
     userPasswordSalt: Optional[str]
     userMobile: Optional[str]
     userEmail: Optional[str]
     userSex: Optional[str]
-    userLocked: Optional[str]
-    loginCount: Optional[int]
     loginTime: Optional[str]
     loginIp: Optional[str]
     userAccount: Optional[str]

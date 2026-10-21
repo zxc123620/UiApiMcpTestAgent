@@ -7,7 +7,7 @@
 from fastmcp.tools import tool
 
 from uiapimcptestagent.apps import csrd_api_mcp
-from uiapimcptestagent.csrd.tools.csrd_func_tool import CsrdFuncTool
+from csrd.tools import CsrdFuncTool
 
 public_key = """
 -----BEGIN PUBLIC KEY-----

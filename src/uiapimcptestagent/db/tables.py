@@ -64,7 +64,9 @@ class ApiTestCase(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=True, doc='测试用例标题')
     description: Mapped[str] = mapped_column(String(255), nullable=True, doc='测试用例描述')
     pre_requisites: Mapped[dict] = mapped_column(JSON, nullable=True, doc='前置条件')
+    post_steps: Mapped[dict] = mapped_column(JSON, nullable=True, doc='后置步骤')
     test_steps: Mapped[dict] = mapped_column(JSON, nullable=True, doc='测试步骤')
+    is_active: Mapped[bool] = mapped_column(nullable=False, default=True, doc='是否激活')
 
 # class ApiCaseDataRelation(Base):
 #     """

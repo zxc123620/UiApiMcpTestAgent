@@ -4,16 +4,18 @@
 # Author:zhouxiaochuan
 # Description:
 import logging
-from typing import Union, List
+from typing import Union
 from pydantic import field_validator
 
 from typing import Optional
 
 from pydantic import BaseModel, model_validator
 
-from uiapimcptestagent.csrd.pub.api.pub_res_code import CSRD_P_RESULT_CODES
+from csrd.pub.api.pub_res_code import CSRD_P_RESULT_CODES
+from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 
+@api_res_model_register
 class BaseCsrdResponseModel(BaseModel):
     """
     用户基础返回模型

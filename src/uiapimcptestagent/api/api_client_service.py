@@ -76,7 +76,7 @@ class APiClientService(metaclass=Singleton):
 
         with Session(db_engine) as session:
             stmt = select(ApiTestData).where(ApiTestData.key == test_data_key)
-            db_data = session.execute(stmt).first()
+            db_data = session.scalar(stmt)
             if db_data is None:
                 raise KeyNotFound(f"测试数据 {test_data_key} 不存在")
             api_test_data = ApiTestDataModel.model_validate(db_data)

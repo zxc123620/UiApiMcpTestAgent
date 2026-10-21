@@ -3,7 +3,7 @@
 # Time: 2026/10/16 17:03
 # Author:zhouxiaochuan
 # Description:
-
+import os
 
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
@@ -16,11 +16,8 @@ from sqlalchemy.orm import Session
 from uiapimcptestagent import db_engine
 from uiapimcptestagent.db.tables import ApiTestCase
 
-# LOGIN_CASE_KEY = "user.login.success"
-#
-# @pytest.fixture(scope="session", autouse=True)
-# def login():
-#     pass
+import dotenv
+dotenv.load_dotenv()
 
 def pytest_addoption(parser):
     """
@@ -32,7 +29,7 @@ def pytest_addoption(parser):
 
     """
     parser.addoption("--module", action="store", required=False,default="all", help="测试用例模块")
-    # parser.addoption("--sub_module", action="store", required=False,default="all", help="测试用例子模块")
+    parser.addoption("--sub_module", action="store", required=False,default="all", help="测试用例子模块")
     parser.addoption("--title", action="store", required=False,default="all", help="测试用例标题")
 
 
@@ -46,16 +43,22 @@ def pytest_generate_tests(metafunc):
 
     """
     module_str = metafunc.config.getoption("module")
+    sub_module_str = metafunc.config.getoption("sub_module")
     module_list = module_str.split(" ")
     module_list = [ module.replace(' ', '') for module in module_list if str(module).replace(' ', '') != ""]
-    # sub_module = metafunc.config.getoption("sub_module")
+    sub_module_list = sub_module_str.split(" ")
     title = metafunc.config.getoption("title")
-    case_ids = []
+    # 登录用例key
+    login_case_key= os.getenv("login_case_key", None)
+    if login_case_key is not None:
+        case_ids = [login_case_key]
     with Session(db_engine) as session:
         # 获取测试用例
-        stmt = select(ApiTestCase)
+        stmt = select(ApiTestCase).where(ApiTestCase.is_active == True)
         if module_str != "all":
             stmt = stmt.where(ApiTestCase.module_name.in_(module_list))
+        if sub_module_str != "all":
+            stmt = stmt.where(ApiTestCase.sub_module_name.in_(sub_module_list))
         if title != "all":
             stmt = stmt.where(ApiTestCase.title.like(f"%{title}%"))
         api_test_cases = session.scalars(stmt).all()
@@ -63,4 +66,4 @@ def pytest_generate_tests(metafunc):
     # 添加测试用例参数化
     if "case_id" in metafunc.fixturenames:
         # 将一个函数扩展成多个用例节点
-        metafunc.parametrize("case_id", case_ids)
+        metafunc.parametrize("case_id", case_ids,indirect=True)

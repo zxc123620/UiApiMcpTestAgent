@@ -12,7 +12,7 @@ import allure
 from jsonpath_ng import parse as jsonpath_parse
 
 from uiapimcptestagent.assertion.assertion_base_operate import OPERATORS
-from uiapimcptestagent.assertion.assertion_rules import AssertionRules
+from uiapimcptestagent.assertion.assertion_rules import AssertionRule
 
 
 # ---------- 提取 ----------
@@ -33,7 +33,7 @@ class AssertionEngine:
 
     @staticmethod
     @allure.step("运行断言规则")
-    def run( response: Any, rules: list[AssertionRules]) -> list[str]:
+    def run( response: Any, rules: list[AssertionRule]) -> list[str]:
         """
         运行一组断言规则，返回失败信息列表（空列表=全通过）
         不抛异常，方便一次性收集所有失败
@@ -52,7 +52,7 @@ class AssertionEngine:
         return failures
 
     @staticmethod
-    def run_one(failures: list[str], response: Any, rule: AssertionRules):
+    def run_one(failures: list[str], response: Any, rule: AssertionRule):
         """
         运行一个断言
         Args:
@@ -63,7 +63,7 @@ class AssertionEngine:
         Returns:
 
         """
-        path = rule.path
+        path = rule.jsonpath
         op = rule.operator
         expected = rule.expect_value
         actual = _extract(response, path)
@@ -74,7 +74,7 @@ class AssertionEngine:
 
         try:
             logging.info(f"校验操作:{op}, 路径:{path}, 期望:{expected}")
-            OPERATORS[op](actual, expected, {
+            OPERATORS[op](expected, actual, {
                 "response": response, "path": path,
             })
         except AssertionError as e:
