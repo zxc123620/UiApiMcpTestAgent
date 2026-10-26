@@ -11,7 +11,7 @@ from typing import Optional
 
 from pydantic import BaseModel, model_validator
 
-from csrd.pub.api.pub_res_code import CSRD_P_RESULT_CODES
+from csrd.pub.pub_res_code import CSRD_P_RESULT_CODES
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 

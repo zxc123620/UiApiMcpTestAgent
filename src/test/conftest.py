@@ -44,6 +44,9 @@ def pytest_generate_tests(metafunc):
     """
     module_str = metafunc.config.getoption("module")
     sub_module_str = metafunc.config.getoption("sub_module")
+    print("模块=", module_str)
+    print("子模块=", sub_module_str)
+
     module_list = module_str.split(" ")
     module_list = [ module.replace(' ', '') for module in module_list if str(module).replace(' ', '') != ""]
     sub_module_list = sub_module_str.split(" ")

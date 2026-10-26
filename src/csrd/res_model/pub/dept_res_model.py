@@ -7,7 +7,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
-from csrd.pub.api.res_model.base_csrd_response_model import BaseCsrdResponseModel
+from csrd.res_model.pub.base_csrd_response_model import BaseCsrdResponseModel
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 

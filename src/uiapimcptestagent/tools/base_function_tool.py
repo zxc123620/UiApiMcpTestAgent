@@ -4,6 +4,7 @@
 # Author:zhouxiaochuan
 # Description: 函数助手
 import datetime
+import logging
 import random
 import string
 import uuid
@@ -14,6 +15,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5, DES
 from Crypto.Util.Padding import pad
 
+from uiapimcptestagent.api.api_client_service import APiClientService
 from uiapimcptestagent.db.process.string_method_executor import StringMethodExecutor
 
 
@@ -49,6 +51,20 @@ class BaseFunctionTool:
 
         """
         return int(''.join(random.choices(string.digits, k=length)))
+
+    @staticmethod
+    @StringMethodExecutor.register("send_request")
+    def send_request(key):
+        """
+        发送请求
+        Args:
+            key: 请求key
+
+        Returns:
+
+        """
+        logging.info(f"发送请求: {key}")
+        APiClientService().send_request(key)
 
     @staticmethod
     @StringMethodExecutor.register("get_uuid")

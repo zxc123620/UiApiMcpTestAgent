@@ -8,7 +8,12 @@ import logging
 import re
 from typing import Any
 
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from uiapimcptestagent import db_engine
 from uiapimcptestagent.db.process.data_process import DataProcess
+from uiapimcptestagent.db.tables import ApiTestData
 
 
 class StringContextExecutor(DataProcess):
@@ -53,6 +58,23 @@ class StringContextExecutor(DataProcess):
             return datetime.datetime.now().strftime("%H:%M:%S")
         else:
             return None
+    @classmethod
+    def search_key_from_database(cls, key: str):
+        """
+        从数据库中搜索上下文键把它转换为请求表达式
+        Args:
+            key: 上下文键
+
+        Returns:
+
+        """
+        stmt = select(ApiTestData.key).where(ApiTestData.extract.like(f"%{key}%"))
+        with Session(db_engine) as session:
+            key = session.scalar(stmt)
+            if key is None:
+                logging.info(f"测试数据 {key} 不存在")
+                return "not_found"
+            return f"__send_request({key})__"
 
     @classmethod
     def data_replacer(cls, value_str: str) -> Any:
@@ -85,8 +107,9 @@ class StringContextExecutor(DataProcess):
                     value = temp_value
                     break
                 # 如果数据为空，则返回未找到数据
-                logging.info(f"未找到数据: {key} ，返回默认值: not_found")
-                return "not_found"
+                logging.info(f"未找到数据: {key} ，从数据库中搜索")
+                key = cls.search_key_from_database(key)
+                return key
         logging.info(f"从{key} 获取到数据: {value}, 类型为: {type(value)}")
         if isinstance(value, (dict, list, tuple)):
             # 如果的到的数据为字典或列表或元组，则返回数据本身

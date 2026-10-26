@@ -25,10 +25,20 @@ logger = logging.getLogger("api")
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 @dataclass
+class ApiRequest:
+    method: str
+    url: str
+    params: Optional[Dict] = None
+    headers: Optional[Dict] = None
+    data: Optional[Dict] = None
+
+
+@dataclass
 class ApiResponse:
     response: Optional[requests.Response] = None
     failed_rules: Optional[list[str]] = None
     validated_data: Optional[BaseModel] = None
+    request: Optional[ApiRequest] = None
 
 
 class BaseAPIClient:
@@ -136,6 +146,14 @@ class BaseAPIClient:
         
         # 发送请求
         start_time = time.time()
+        # 记录请求
+        api_res.request = ApiRequest(
+            method=method.upper(),
+            url=url,
+            params=kwargs.get('params', None),
+            headers=self.default_headers,
+            data=kwargs.get('json', None))
+
         response = self.session.request(method, url, verify=False, **kwargs)
         api_res.response = response
         elapsed_time = time.time() - start_time

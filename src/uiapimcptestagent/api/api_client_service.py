@@ -36,7 +36,7 @@ class APiClientService(metaclass=Singleton):
         )
 
     @allure.step("提取响应字段")
-    def extract_resdata(self, extreact_list: list[APiTestDataResExtract], res_json: dict):
+    def extract_res_data(self, extreact_list: list[APiTestDataResExtract], res_json: dict):
         """
         提取响应字段
 
@@ -98,7 +98,7 @@ class APiClientService(metaclass=Singleton):
         # 提取字段
         if api_test_data.extract is not None:
             logging.info(f"提取字段: {api_test_data.extract}")
-            self.extract_resdata(api_test_data.extract, res_json)
+            self.extract_res_data(api_test_data.extract, res_json)
         # # 校验字段
         # if api_test_data.validate_rules is not None:
         #     logging.info(f"校验字段: {api_test_data.validate_rules}")

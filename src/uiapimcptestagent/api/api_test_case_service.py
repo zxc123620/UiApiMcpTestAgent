@@ -8,15 +8,21 @@ import logging
 from typing import Optional
 
 import allure
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
+from uiapimcptestagent import db_engine
 from uiapimcptestagent.ai.agents.test_assert_agent import TestAssertAgent
-from uiapimcptestagent.ai.ai_res_model.test_assert_res_model import ApiTestAssertResModel
-from uiapimcptestagent.api.api_db.api_model import ContextKeyHas, JudgeCriteria, TestSteps, JudgeCriteriaItem
+from uiapimcptestagent.api.api_db.api_model import ContextKeyHas, JudgeCriteria, TestSteps
 from uiapimcptestagent.api.api_client_service import APiClientService
+from uiapimcptestagent.api.base_api_client import ApiResponse
 from uiapimcptestagent.assertion.assertion_engine import AssertionEngine
 from uiapimcptestagent.assertion.assertion_rules import AssertionConfig
 from uiapimcptestagent.assertion.assertion_tools import APIAssertionTools
 from uiapimcptestagent.db.process.string_context_executor import StringContextExecutor
+from uiapimcptestagent.db.tables import ApiTestData
+from uiapimcptestagent.errors import ContextKeyError
+
 
 class ApiTestCaseService:
     base_api_client_service = APiClientService()
@@ -51,6 +57,7 @@ class ApiTestCaseService:
         Returns:
 
         """
+        logging.info("处理前置/后置操作")
         # 如果前置/后置操作为空，直接返回
         if requisites is None or len(requisites) == 0:
             return
@@ -58,15 +65,16 @@ class ApiTestCaseService:
             # 执行前置/后置操作
             if pre_requisite.api_res_exist is not None:
                 # 校验前置/后置操作响应是否存在
+                logging.info(f"校验前置/后置操作响应是否存在 {pre_requisite.api_res_exist}")
                 cls.check_api_res_exist(pre_requisite.api_res_exist, exist=True)
             if pre_requisite.api_res_not_exist is not None:
                 # 校验前置/后置操作响应不存在
+                logging.info(f"校验前置/后置操作响应不存在 {pre_requisite.api_res_not_exist}")
                 cls.check_api_res_exist(pre_requisite.api_res_not_exist, exist=False)
             if pre_requisite.context_key_has is not None:
                 # 校验前置/后置操作上下文是否存在指定键
+                logging.info(f"校验前置/后置操作上下文是否存在指定键 {pre_requisite.context_key_has}")
                 cls.check_context_key_has(pre_requisite.context_key_has)
-
-
 
     @classmethod
     @allure.step("校验上下文是否存在指定键")
@@ -82,20 +90,48 @@ class ApiTestCaseService:
         if context_key_has is None or len(context_key_has) == 0:
             return
         for context_key in context_key_has:
-            if context_key.context_key not in StringContextExecutor.context:
-                # 如果上下文不存在指定键，根据steps_after_failure发起请求
+            checked = False
+            send = False
+            # 如果上下文不存在指定键
+            while True:
+                # 如果上下文存在指定键，跳出循环
+                if context_key.context_key in StringContextExecutor.context:
+                    break
+                # 如果上下文不存在指定键，且已发起请求，抛出异常
+                if checked:
+                    raise ContextKeyError(f"上下文不存在指定键 {context_key.context_key},并且执行失败步骤后仍未存在")
+                # 如果上下文不存在指定键，且未发起请求，发起请求
+                if not send:
+                    # 上下文不存在指定键，寻找测试数据是否存在指定键
+                    stmt = select(ApiTestData.key).where(ApiTestData.extract.like(f"%{context_key.context_key}%"))
+                    test_data_key_has_context = None
+                    with Session(db_engine) as session:
+                        test_data_key_has_context = session.scalar(stmt)
+                    # 如果测试数据不存在指定键，抛出异常
+                    if test_data_key_has_context is None:
+                        raise ContextKeyError(f"上下文不存在指定键 {context_key.context_key},并且测试数据中也不存在。")
+                    # 如果测试数据存在指定键，发起请求
+                    cls.base_api_client_service.send_request(test_data_key=test_data_key_has_context)
+                    send = True
+                    # 发起请求后，继续校验上下文是否存在指定键 不往下执行
+                    continue
+                # 如果测试数据不存在指定键
+                # 根据steps_after_failure发起请求
                 for test_data_key in context_key.steps_after_failure:
                     cls.base_api_client_service.send_request(test_data_key=test_data_key)
+                checked = True
+
 
     @classmethod
     @allure.step("处理断言配置")
-    def handle_assert_config(cls,res_json_body: dict, assertion_config: AssertionConfig,exist=True):
+    def handle_assert_config(cls,res_json_body: dict, assertion_config: AssertionConfig,all_steps_res_context: Optional[list[ApiResponse]] = None, exist=True):
         """
         处理断言配置
 
         Args:
             res_json_body: 响应体
             assertion_config: 断言配置项
+            all_steps_res_context: 所有步骤的响应上下文
             exist: 是否校验存在 True 校验存在 False 校验不存在
 
         Returns:
@@ -104,7 +140,8 @@ class ApiTestCaseService:
         logging.info(f"校验字段: {assertion_config.model_dump()}")
         failed_rules = []
         base_assert_failed_rules = AssertionEngine.run(response=res_json_body,
-                                                       rules=assertion_config.assertion_rules)
+                                                       rules=assertion_config.assertion_rules,
+                                                       all_steps_res_context=all_steps_res_context)
         failed_rules.extend(base_assert_failed_rules)
         ai_assertion_rule = assertion_config.ai_assertion_rule
         if ai_assertion_rule is not None and ai_assertion_rule != "":
@@ -154,11 +191,13 @@ class ApiTestCaseService:
                 failed_rules = cls.handle_assert_config(res_json_body, judgment_criteria_item.assertion_config, exist=exist)
                 # 表示校验通过
                 if failed_rules is None:
+                    for step_after_success in judgment_criteria_item.steps_after_success:
+                        cls.base_api_client_service.send_request(test_data_key=step_after_success)
                     continue
                # 校验失败
                 steps_after_failure = judgment_criteria_item.steps_after_failure
-                for steps_after_failure in steps_after_failure:
-                    cls.base_api_client_service.send_request(test_data_key=steps_after_failure)
+                for step_after_failure in steps_after_failure:
+                    cls.base_api_client_service.send_request(test_data_key=step_after_failure)
 
 
     @classmethod
@@ -173,12 +212,15 @@ class ApiTestCaseService:
         Returns:
 
         """
+        all_steps_res_context = []
         if test_steps is None or len(test_steps) == 0:
             logging.info("测试步骤为空，跳过")
             return
         for test_step in test_steps:
             # 执行测试步骤
+            logging.info(f"====================【执行测试步骤【{test_step.test_data_key}】】====================")
             res = cls.base_api_client_service.send_request(test_data_key=test_step.test_data_key)
+            all_steps_res_context.append(res)
             if test_step.assertion_config is None:
                 logging.info(f"测试步骤的校验规则为空，跳过")
                 continue
@@ -189,7 +231,7 @@ class ApiTestCaseService:
             # 获取响应内容
             res_json_body = res.validated_data.model_dump()
             # 校验响应数据
-            failed_rules = cls.handle_assert_config(res_json_body, test_step.assertion_config)
+            failed_rules = cls.handle_assert_config(res_json_body, test_step.assertion_config,all_steps_res_context)
             # 校验通过
             if failed_rules is None:
                 continue

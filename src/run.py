@@ -26,7 +26,7 @@ def run():
         allure_path.as_posix(),
         "--clean-alluredir",
         "--module",
-        "组织机构管理"
+        "梁场信息"
     ])
 
 

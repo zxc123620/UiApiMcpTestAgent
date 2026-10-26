@@ -9,6 +9,7 @@ import uuid
 
 import allure
 import pytest
+from pywin.dialogs import login
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -51,22 +52,27 @@ class TestApi:
         Returns:
 
         """
+        logging.info(f"获取测试用例关联的测试数据，测试用例id={case_id}")
         # 获取测试用例关联的测试数据
         with Session(db_engine) as session:
             # 获取测试用例详情
             stmt = select(ApiTestCase).where(ApiTestCase.key == case_id)
             db_test_case = session.scalar(stmt)
             test_case_model = ApiTestCaseModel.model_validate(db_test_case)
+        logging.info(f"====================【执行测试用例【{test_case_model.title}】】====================")
         # allure报告配置
         # ApiTestCaseService.handle_allure_info(test_case_model)
         # 处理前置操作
-        logging.info("处理前置操作")
+        logging.info("====================【处理前置操作】====================")
         ApiTestCaseService.handle_requisites(test_case_model.pre_requisites)
+        logging.info("====================【处理前置操作完成】====================")
         # 处理测试步骤
         yield test_case_model
-        logging.info("处理后置操作")
+        logging.info("====================【处理后置操作】====================")
         # 处理后置操作
         ApiTestCaseService.handle_requisites(test_case_model.post_steps)
+        logging.info("====================【处理后置操作完成】====================")
+        logging.info("====================【测试用例【{test_case_model.title}】执行完成】====================")
 
     def test_api(self, api_fixture):
         """
@@ -79,8 +85,10 @@ class TestApi:
             None
 
         """
+        logging.info("====================【执行测试步骤】====================")
         # 处理测试步骤
         test_case_model = api_fixture
+
         # # 获取测试用例关联的测试数据
         # with Session(db_engine) as session:
         #     # 获取测试用例详情
@@ -93,3 +101,4 @@ class TestApi:
         # ApiTestCaseService.handle_pre_requisites(test_case_model.pre_requisites)
 
         ApiTestCaseService.handle_test_steps(test_case_model.test_steps)
+        logging.info("====================【测试步骤执行完成】====================")

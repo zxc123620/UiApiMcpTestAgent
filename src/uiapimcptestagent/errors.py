@@ -7,3 +7,12 @@
 
 class KeyNotFound(Exception):
     pass
+
+class ContextNotFound(Exception):
+    pass
+
+class ContextKeyError(Exception):
+    pass
+
+class ResQuestNotFound(Exception):
+    pass

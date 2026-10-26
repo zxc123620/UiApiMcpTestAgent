@@ -127,6 +127,7 @@ def init_api_res_models():
     package_name = os.getenv("API_RES_MODEL_PACKAGE_NAME", "models")
     logging.info(f"导入API响应模型包: {package_name}")
     auto_load_module(package_name)
+    logging.info(f"API响应模型包导入完成")
 
 def init_api_func_tools():
     """
@@ -137,6 +138,7 @@ def init_api_func_tools():
     package_name = os.getenv("API_FUNC_TOOL_PACKAGE_NAME", "tools")
     logging.info(f"导入API功能工具包: {package_name}")
     auto_load_module(package_name)
+    logging.info(f"API功能工具包导入完成")
 
 init_env()
 init_logger_config()

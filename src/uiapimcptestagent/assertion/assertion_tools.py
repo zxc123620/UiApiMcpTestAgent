@@ -152,7 +152,7 @@ class APIAssertionTools:
 
     @classmethod
     @allure.step("验证响应包含预期字典")
-    def res_contains_data(cls, expected: dict, actual: dict, ctx:Any):
+    def res_contains_data(cls, actual: dict, expected: dict, **ctx):
         """
         递归验证预期的值,直到到最底层
         Args:
@@ -169,15 +169,15 @@ class APIAssertionTools:
 
     @classmethod
     @allure.step("验证响应包含预期字典键")
-    def res_contains_key(cls, expect: list[str], actual: dict, ctx: Any):
+    def res_contains_key(cls, actual: dict, expected: list[str], **ctx):
         """
         使用jsonpath验证预期的值
         Args:
-            expect: 期望的键列表 例如 ["username", "userId]
+            expected: 期望的键列表 例如 ["username", "userId]
             actual: 实际的字典数据
             ctx: 上下文信息，包含路径等信息
         """
-        for expected_key in expect:
+        for expected_key in expected:
             assert expected_key in actual.keys(), f"验证失败: {actual} 中没有提取到{expected_key}"
     #
     # @classmethod

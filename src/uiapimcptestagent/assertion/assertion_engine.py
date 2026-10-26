@@ -5,27 +5,13 @@
 # Description:
 # core/assertion_engine.py
 import logging
-import re
 from typing import Any
 
 import allure
-from jsonpath_ng import parse as jsonpath_parse
 
 from uiapimcptestagent.assertion.assertion_base_operate import OPERATORS
 from uiapimcptestagent.assertion.assertion_rules import AssertionRule
-
-
-# ---------- 提取 ----------
-def _extract(response: Any, path: str):
-    """从 response 里按 JSONPath 取值，取不到返回 None"""
-    if not path or path == "$":
-        return response
-    matches = jsonpath_parse(path).find(response)
-    if not matches:
-        return None
-    if len(matches) == 1:
-        return matches[0].value
-    return [m.value for m in matches]
+from uiapimcptestagent.tools.response_model_tool import json_extract
 
 
 # ---------- 对外主入口 ----------
@@ -33,7 +19,7 @@ class AssertionEngine:
 
     @staticmethod
     @allure.step("运行断言规则")
-    def run( response: Any, rules: list[AssertionRule]) -> list[str]:
+    def run( response: Any, rules: list[AssertionRule], **kwargs) -> list[str]:
         """
         运行一组断言规则，返回失败信息列表（空列表=全通过）
         不抛异常，方便一次性收集所有失败
@@ -48,11 +34,11 @@ class AssertionEngine:
         """
         failures = []
         for rule in rules:
-            AssertionEngine.run_one(failures, response, rule)
+            AssertionEngine.run_one(failures, response, rule, **kwargs)
         return failures
 
     @staticmethod
-    def run_one(failures: list[str], response: Any, rule: AssertionRule):
+    def run_one(failures: list[str], response: Any, rule: AssertionRule, **kwargs):
         """
         运行一个断言
         Args:
@@ -66,7 +52,7 @@ class AssertionEngine:
         path = rule.jsonpath
         op = rule.operator
         expected = rule.expect_value
-        actual = _extract(response, path)
+        actual = json_extract(response, path)
 
         if op not in OPERATORS:
             failures.append(f"未知操作符: {op} (path={path})")
@@ -74,8 +60,9 @@ class AssertionEngine:
 
         try:
             logging.info(f"校验操作:{op}, 路径:{path}, 期望:{expected}")
-            OPERATORS[op](expected, actual, {
-                "response": response, "path": path,
-            })
+            kwargs["response"] = response
+            kwargs["path"] = path
+            OPERATORS[op](actual, expected, **kwargs)
         except AssertionError as e:
+            logging.info(f"校验失败: {e}")
             failures.append(str(e))
