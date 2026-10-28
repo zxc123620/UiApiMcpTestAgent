@@ -67,6 +67,7 @@ class ApiTestCase(Base):
     post_steps: Mapped[dict] = mapped_column(JSON, nullable=True, doc='后置步骤')
     test_steps: Mapped[dict] = mapped_column(JSON, nullable=True, doc='测试步骤')
     is_active: Mapped[bool] = mapped_column(nullable=False, default=True, doc='是否激活')
+    order: Mapped[int] = mapped_column(nullable=False, default=0, doc='执行顺序从0开始')
 
 # class ApiCaseDataRelation(Base):
 #     """

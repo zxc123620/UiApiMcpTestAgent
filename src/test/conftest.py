@@ -57,7 +57,8 @@ def pytest_generate_tests(metafunc):
         case_ids = [login_case_key]
     with Session(db_engine) as session:
         # 获取测试用例
-        stmt = select(ApiTestCase).where(ApiTestCase.is_active == True)
+        stmt = select(ApiTestCase).where(ApiTestCase.is_active == True).order_by(ApiTestCase.module_name,ApiTestCase.order)
+
         if module_str != "all":
             stmt = stmt.where(ApiTestCase.module_name.in_(module_list))
         if sub_module_str != "all":
@@ -65,7 +66,20 @@ def pytest_generate_tests(metafunc):
         if title != "all":
             stmt = stmt.where(ApiTestCase.title.like(f"%{title}%"))
         api_test_cases = session.scalars(stmt).all()
-        case_ids = [ api_test_case.key for api_test_case in api_test_cases]
+
+        case_ids_by_module = {}
+        current_model_name = ""
+        for api_test_case in api_test_cases:
+            if api_test_case.module_name != current_model_name:
+                current_model_name = api_test_case.module_name
+                case_ids_by_module[current_model_name] = [api_test_case.key]
+            else:
+                case_ids_by_module[current_model_name].append(api_test_case.key)
+
+        case_ids = []
+        for case_ids_list in case_ids_by_module.values():
+            case_ids.extend(case_ids_list)
+
     # 添加测试用例参数化
     if "case_id" in metafunc.fixturenames:
         # 将一个函数扩展成多个用例节点

@@ -52,6 +52,7 @@ CREATE TABLE api_test_case (
         post_steps JSON,  -- 后置步骤
 	test_steps JSON,  -- 测试步骤
 	is_active INTEGER DEFAULT (1),  -- 是否启用
+	order INTEGER DEFAULT (0),  -- 排序，用于在模块内排序，默认0,如果是清场的用例，则应该设置为模块内最大的order+1
 
 	PRIMARY KEY (id)
 );
@@ -104,42 +105,42 @@ class AssertionConfig(BaseModel):
 **说明**
 -   `assertion_rules` 和 `ai_assertion_rule`是相辅相成的,可以同时使用。例如在一些接口失败提示中,使用Ai来判断提示字段内容更好，其他字段使用普通判断。
 
-**AssertionRule.operator支持的值**
+**AssertionRule.operator 支持的值**
 
 | 操作符 | 含义说明 |
 | :--- | :--- |
 | **基本比较** | |
-| `eq` | 等于 (Equal) |
-| `eq_req_body_jsonpath` | 等于请求体中的jsonpath表达式路径下值,参数为jsonpath表达式 |
-| `ne` | 不等于 (Not Equal) |
-| `gt` | 大于 (Greater Than) |
-| `gte` | 大于等于 (Greater Than or Equal) |
-| `lt` | 小于 (Less Than) |
-| `lte` | 小于等于 (Less Than or Equal) |
+| `eq` | 判断实际值是否等于期望值。 |
+| `eq_req_body_jsonpath` | 判断实际值是否等于指定测试步骤中某个请求体 JSONPath 路径下的值。参数为 JSONPath 表达式；系统会依次遍历该测试步骤中的每个请求，逐一查找，直到最后一个请求结束。 |
+| `ne` | 判断实际值是否不等于期望值。 |
+| `gt` | 判断实际值是否大于期望值。 |
+| `gte` | 判断实际值是否大于或等于期望值。 |
+| `lt` | 判断实际值是否小于期望值。 |
+| `lte` | 判断实际值是否小于或等于期望值。 |
 | **存在性与类型** | |
-| `exists` | 字段存在 |
-| `not_exists` | 字段不存在 |
-| `type` | 字段类型匹配 |
-| **字符串匹配(常用)** | |
-| `contains` | 包含指定字符串 |
-| `not_contains` | 不包含指定字符串 |
-| `regex` | 正则表达式匹配 |
-| `startswith` | 以指定字符串开头 |
-| `endswith` | 以指定字符串结尾 |
+| `exists` | 判断指定字段是否存在。 |
+| `not_exists` | 判断指定字段是否不存在。 |
+| `type` | 判断字段类型是否与期望类型匹配。 |
+| **字符串匹配（常用）** | |
+| `contains` | 判断字符串是否包含指定子串。 |
+| `not_contains` | 判断字符串是否不包含指定子串。 |
+| `regex` | 判断字符串是否匹配指定正则表达式。 |
+| `startswith` | 判断字符串是否以指定子串开头。 |
+| `endswith` | 判断字符串是否以指定子串结尾。 |
 | **长度判断** | |
-| `length_eq` | 长度等于 |
-| `length_gt` | 长度大于 |
-| `length_lt` | 长度小于 |
+| `length_eq` | 判断长度是否等于期望值。 |
+| `length_gt` | 判断长度是否大于期望值。 |
+| `length_lt` | 判断长度是否小于期望值。 |
 | **集合与范围** | |
-| `in` | 包含于指定集合/列表 |
-| `not_in` | 不包含于指定集合/列表 |
-| `between` | 在指定范围内 |
+| `in` | 判断实际值是否包含于指定集合或列表中。 |
+| `not_in` | 判断实际值是否不包含于指定集合或列表中。 |
+| `between` | 判断实际值是否处于指定范围内。 |
 | **空值判断** | |
-| `is_empty` | 值为空 |
-| `not_empty` | 值不为空 |
-| **字典判断(常用)** | |
-| `res_contains_data` |  判断返回响应结果中是否与预期的字典数据一致。`expect_value`应是一个 `dict`数据。 |
-| `res_contains_key` | 判断响应结果中是否包含预期的字段。`expect_value`应是一个`list[str]`数据,里面是期望的键名称。 |
+| `is_empty` | 判断值是否为空。 |
+| `not_empty` | 判断值是否不为空。 |
+| **字典判断（常用）** | |
+| `res_contains_data` | 判断响应结果是否包含期望的字典数据。`expect_value` 应为 `dict` 类型。 |
+| `res_contains_key` | 判断响应结果是否包含期望的字段。`expect_value` 应为 `list[str]` 类型，其中列出期望的键名称。 |
 ## 表字段内容使用规则
 
 ### api_test_data 下的 headers, params , data 字段
