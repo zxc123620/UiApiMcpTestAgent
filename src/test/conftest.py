@@ -29,7 +29,7 @@ def pytest_addoption(parser):
 
     """
     parser.addoption("--module", action="store", required=False,default="all", help="测试用例模块")
-    parser.addoption("--sub_module", action="store", required=False,default="all", help="测试用例子模块")
+    parser.addoption("--submodule", action="store", required=False,default="all", help="测试用例子模块")
     parser.addoption("--title", action="store", required=False,default="all", help="测试用例标题")
 
 
@@ -43,7 +43,7 @@ def pytest_generate_tests(metafunc):
 
     """
     module_str = metafunc.config.getoption("module")
-    sub_module_str = metafunc.config.getoption("sub_module")
+    sub_module_str = metafunc.config.getoption("submodule")
     print("模块=", module_str)
     print("子模块=", sub_module_str)
 

@@ -19,9 +19,9 @@ class TestAssertAgent(BaseAgent):
     - 只要实际结果表达了预期结果的含义就算通过
     - 不要求文字完全一致
     - 如果实际结果缺少预期结果要求的关键信息，则失败
-    
-    只输出 JSON：
-    {"pass_": true 或 false, "reason": "一句话说明理由"}
+    返回数据：
+    只输出一个 JSON 对象，不要前后缀或 Markdown 代码块标记（如 ```` ```json ````）。第一个字符必须是 `{`，最后一个字符必须是 `}`。
+    例如： {"pass_": true 或 false, "reason": "一句话说明理由"}
     """
 
     def __init__(self, instance_id: str = "TestAssertAgent", thread_id: str = "TestAssertAgent"):

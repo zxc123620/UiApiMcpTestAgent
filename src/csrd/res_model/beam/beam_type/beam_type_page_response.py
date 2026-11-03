@@ -3,10 +3,10 @@
 # Time: 2026/10/29 17:21
 # Author:zhouxiaochuan
 # Description:
-from typing import List, Optional
+from typing import List, Optional, Union
 from pydantic import BaseModel, Field
 
-from csrd.res_model.pub.base_csrd_response_model import BaseCsrdResponseModel, CsrdPageData
+from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse, CsrdPageResult
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 class BeamTypeItem(BaseModel):
@@ -24,17 +24,13 @@ class BeamTypeItem(BaseModel):
     beamTypeColor: Optional[str] = Field(default=None, description="架梁图例颜色")
 
 
-class PageData(CsrdPageData):
+class PageData(CsrdPageResult):
     list: Optional[List[BeamTypeItem]] = Field(default=None, description="梁型列表")
 
 
 @api_res_model_register
-class BeamTypePageResponse(BaseCsrdResponseModel):
+class BeamTypePageResponse(BaseCsrdApiResponse):
     """
     梁型分页响应模型
     """
-    status: Optional[str] = Field(default=None)
-    code: Optional[str] = Field(default=None)
-    message: Optional[str] = Field(default=None)
-    timestamp: Optional[int] = Field(default=None)
-    data: Optional[PageData] = Field(default=None)
+    data: Optional[Union[PageData, str]] = Field(default=None,description="分页数据")

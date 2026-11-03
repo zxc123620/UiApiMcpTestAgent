@@ -6,7 +6,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
-from csrd.res_model.pub.base_csrd_response_model import BaseCsrdResponseModel
+from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 
@@ -18,7 +18,7 @@ class BddItem(BaseModel):
     numberType: Optional[str] = Field(default=None, description="1.基础编码2.其他编码")
 
 @api_res_model_register
-class DesignDrawNumberRes(BaseCsrdResponseModel):
+class DesignDrawNumberRes(BaseCsrdApiResponse):
     """
     设计图号响应模型
     """

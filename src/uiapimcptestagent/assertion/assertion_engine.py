@@ -11,6 +11,8 @@ import allure
 
 from uiapimcptestagent.assertion.assertion_base_operate import OPERATORS
 from uiapimcptestagent.assertion.assertion_rules import AssertionRule
+from uiapimcptestagent.db.process.string_context_executor import StringContextExecutor
+from uiapimcptestagent.errors import ContextNotFound
 from uiapimcptestagent.tools.response_model_tool import json_extract
 
 
@@ -52,6 +54,14 @@ class AssertionEngine:
         path = rule.jsonpath
         op = rule.operator
         expected = rule.expect_value
+        # 查看是否是上下文变量
+        if rule.ctx.get("is_ctx_var", False):
+            # 如果是上下文变量,则从上下文获取值
+            logging.info(f"上下文变量 {expected} 存在, 从上下文获取值并设置为预期值")
+            expected = StringContextExecutor.context.get(expected, None)
+            if expected is None:
+                # 如果上下文变量不存在,则抛出异常
+                raise ContextNotFound(f"上下文变量 {expected} 不存在")
         actual = json_extract(response, path)
 
         if op not in OPERATORS:

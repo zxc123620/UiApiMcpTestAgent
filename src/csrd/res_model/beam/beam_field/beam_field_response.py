@@ -6,7 +6,7 @@
 from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
-from csrd.res_model.pub.base_csrd_response_model import BaseCsrdResponseModel
+from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 
@@ -65,6 +65,6 @@ class BeamFieldData(BaseModel):
     update_time: Optional[str] = Field(None, alias="updateTime", description="修改日期")
 
 @api_res_model_register
-class BeamFieldResponse(BaseCsrdResponseModel):
+class BeamFieldResponse(BaseCsrdApiResponse):
     """最外层响应结构"""
     data: list[BeamFieldData] = Field(..., description="梁场核心数据")

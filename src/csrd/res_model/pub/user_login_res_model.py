@@ -12,7 +12,7 @@ from typing import Optional, List, Union
 
 from pydantic import BaseModel
 
-from csrd.res_model.pub.base_csrd_response_model import BaseCsrdResponseModel
+from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 
@@ -93,7 +93,7 @@ class LoginDataModel(BaseModel):
     showAdmin: Optional[str]
 
 @api_res_model_register
-class UserLoginResModel(BaseCsrdResponseModel):
+class UserLoginResModel(BaseCsrdApiResponse):
     """
     用户登录返回模型
     """

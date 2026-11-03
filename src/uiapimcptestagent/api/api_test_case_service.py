@@ -144,19 +144,22 @@ class ApiTestCaseService:
                                                        all_steps_res_context=all_steps_res_context)
         failed_rules.extend(base_assert_failed_rules)
         ai_assertion_rule = assertion_config.ai_assertion_rule
-        if ai_assertion_rule is not None and ai_assertion_rule != "":
-            # 执行 AI 断言
-            try:
-                APIAssertionTools.ai_judge(ai_assertion_rule, res_json_body)
-            except AssertionError as e:
-                failed_rules.append(str(e))
+        # 基本校验通过，执行AI校验，如果基本校验失败了，就不用执行AI校验
+        if (exist and len(failed_rules) == 0) or ((not exist) and len(failed_rules) > 0):
+            logging.info(f"基本校验通过,执行AI校验")
+            if ai_assertion_rule is not None and ai_assertion_rule != "":
+                # 执行 AI 断言
+                try:
+                    APIAssertionTools.ai_judge(ai_assertion_rule, res_json_body)
+                except AssertionError as e:
+                    failed_rules.append(str(e))
         # 校验规则是存在，并且检验通过  或者 校验规则是验证 不存在，并且检验失败(因为不存在就会失败)
         if (exist and len(failed_rules) == 0) or ((not exist) and len(failed_rules) > 0):
-            logging.info(f"前置校验通过")
+            logging.info(f"所有校验全部通过")
             return None
         # 校验失败
         logging.info(
-            f"前置校验失败，校验规则: {assertion_config.model_dump()}，校验结果: {failed_rules}")
+            f"所有校验失败，校验规则: {assertion_config.model_dump()}，校验结果: {failed_rules}")
         return failed_rules
 
     @classmethod

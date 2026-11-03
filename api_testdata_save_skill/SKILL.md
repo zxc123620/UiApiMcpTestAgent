@@ -6,16 +6,19 @@ description:  接口测试用例保存到数据库的规则。当用户要求将
 
 1. 将生成的测试数据存储到数据库时，需要按照如下结构来插入数据。
 2. 数据生成后可以给一个简单的说明文档，说明干了什么事情。
-## 测试用例生成约束
-1. 单个用例能单独执行。用例之间不产生依赖关系。
+## 测试用例生成强约束
+1. 用例之间不得存在依赖关系：每个用例都应能单独执行，所需数据由用例自身的前置条件准备。
 2. 用例执行完成后应保证被测系统干净，不产生遗留数据。以`模块`即`module_name`为最小单位来产生/清除遗留数据，而不是以用例为单位, 执行用例时也以模块为单位来执行, 整个模块的最后一条用例执行完成后，才执行清除数据操作。因有些数据可能在整个测试流程中使用，比如一些初始化的数据，这种数据可以不做数据清除。
-3. 如果知道需要获取的数据内容，并且能使用jsonpath做验证或者获取到数据,就尽量不要用ai断言。ai断言尽量做语义判断用，例如提示信息。
+3. `测试步骤`只写测试执行动作，不写准备工作和清理工作。准备工作归入`前置条件`，清理/恢复操作归入`后置步骤`。
+4. `后置步骤`要清理脏数据残留：既包括正常用例成功新增或修改的数据，也包括异常用例预期失败、但实际可能已写入系统的数据。凡测试期间可能落库的数据，都应检查并清除。
+5.  如果知道需要获取的数据内容，并且能使用jsonpath做验证或者获取到数据,就尽量不要用ai断言。ai断言尽量做语义判断用，例如提示信息。
+
 ## 测试数据生成约束
 1. 数据必须模拟现实情况、有规律并且能一眼看到是测试数据。比如用户名叫"张xx-测试","周xx-测试"， 而不是叫"测试用户"。
 ## 数据库表结构
 **api_info表**
 存放接口信息
-```
+```sql
 -- api_info definition
 
 CREATE TABLE api_info (
@@ -38,7 +41,7 @@ CREATE INDEX ix_api_info_id ON api_info (id);
 **api_test_case表**
 存放存放接口测试用例
 
-```
+```sql
 -- api_test_case definition
 
 CREATE TABLE api_test_case (
@@ -63,7 +66,7 @@ CREATE INDEX ix_api_test_case_id ON api_test_case (id);
 
 **api_test_data表**
 存放接口测试数据
-```
+```sql
 -- api_test_data definition
 
 CREATE TABLE api_test_data (
@@ -85,13 +88,14 @@ CREATE INDEX ix_api_test_data_id ON api_test_data (id);
 ```
 
 ## 共用断言类
-```
+```python
+
 class AssertionRule(BaseModel):
     """单条断言规则"""
     jsonpath: str = Field(default="$", description="JSONPath 表达式(支持所有的JSONPath表达式语法)")
     operator: str = Field(default="res_contains_data", description="断言操作符")
-    expect_value: Any = Field(..., description="预期值")
-
+    expect_value: Any = Field(..., description="预期值,可以是任意类型,也可以是系统上下文变量(字符串类型)。如果是上下文变量,只需要填入键名(注意不需要${})，并且在ctx中添加一个字段名`is_ctx_var`的,并设置为True")
+    ctx: dict = Field(default_factory=dict, description="其他上下文信息(如果expect_value是一个系统上下文变量,则这里需要添加一个字段名`is_ctx_var`的,并设置为True)")
 
 class AssertionConfig(BaseModel):
     """完整的断言配置（普通规则列表 + AI 规则）"""
@@ -107,40 +111,41 @@ class AssertionConfig(BaseModel):
 
 **AssertionRule.operator 支持的值**
 
-| 操作符 | 含义说明 |
-| :--- | :--- |
-| **基本比较** | |
-| `eq` | 判断实际值是否等于期望值。 |
-| `eq_req_body_jsonpath` | 判断实际值是否等于指定测试步骤中某个请求体 JSONPath 路径下的值。参数为 JSONPath 表达式；系统会依次遍历该测试步骤中的每个请求，逐一查找，直到最后一个请求结束。 |
-| `ne` | 判断实际值是否不等于期望值。 |
-| `gt` | 判断实际值是否大于期望值。 |
-| `gte` | 判断实际值是否大于或等于期望值。 |
-| `lt` | 判断实际值是否小于期望值。 |
-| `lte` | 判断实际值是否小于或等于期望值。 |
-| **存在性与类型** | |
-| `exists` | 判断指定字段是否存在。 |
-| `not_exists` | 判断指定字段是否不存在。 |
-| `type` | 判断字段类型是否与期望类型匹配。 |
+| 操作符 | 含义说明  |
+| :--- |:----|
+| **基本比较** | |                                                                                                                                                                                                                                            
+| `eq` | 判断实际值是否等于期望值。|                                                                                                                                                                                                                
+| `eq_context` | 判断实际值是否等于上下文中的值。参数为上下文中的键名,不需要`${}`,只需要内容，例如`userToken`。|                                                                                                                                              
+| `eq_req_body_jsonpath` | 判断实际值是否等于指定测试步骤中某个请求体 JSONPath 路径下的值。参数为 JSONPath 表达式；系统会依次遍历该测试步骤中的每个请求，逐一查找，直到最后一个请求结束。若在本用例测试步骤里找不到任何带请求体的请求,则该项不适用，使用其他方式替代。 |
+| `ne` | 判断实际值是否不等于期望值。|                                                                                                                                                                                                                
+| `gt` | 判断实际值是否大于期望值。|                                                                                                                                                                                                                  
+| `gte` | 判断实际值是否大于或等于期望值。|
+| `lt` | 判断实际值是否小于期望值。|
+| `lte` | 判断实际值是否小于或等于期望值。|
+| **存在性与类型** |                                                                                                                                                                                                                                            
+| `exists` | 判断指定字段是否存在。|
+| `not_exists` | 判断指定字段是否不存在。|
+| `type` | 判断字段类型是否与期望类型匹配。|
 | **字符串匹配（常用）** | |
-| `contains` | 判断字符串是否包含指定子串。 |
-| `not_contains` | 判断字符串是否不包含指定子串。 |
-| `regex` | 判断字符串是否匹配指定正则表达式。 |
-| `startswith` | 判断字符串是否以指定子串开头。 |
-| `endswith` | 判断字符串是否以指定子串结尾。 |
+| `contains` | 判断字符串是否包含指定子串。|
+| `not_contains` | 判断字符串是否不包含指定子串。|
+| `regex` | 判断字符串是否匹配指定正则表达式。|
+| `startswith` | 判断字符串是否以指定子串开头。|
+| `endswith` | 判断字符串是否以指定子串结尾。|
 | **长度判断** | |
-| `length_eq` | 判断长度是否等于期望值。 |
-| `length_gt` | 判断长度是否大于期望值。 |
-| `length_lt` | 判断长度是否小于期望值。 |
-| **集合与范围** | |
-| `in` | 判断实际值是否包含于指定集合或列表中。 |
-| `not_in` | 判断实际值是否不包含于指定集合或列表中。 |
-| `between` | 判断实际值是否处于指定范围内。 |
-| **空值判断** | |
-| `is_empty` | 判断值是否为空。 |
-| `not_empty` | 判断值是否不为空。 |
-| **字典判断（常用）** | |
-| `res_contains_data` | 判断响应结果是否包含期望的字典数据。`expect_value` 应为 `dict` 类型。 |
-| `res_contains_key` | 判断响应结果是否包含期望的字段。`expect_value` 应为 `list[str]` 类型，其中列出期望的键名称。 |
+| `length_eq` | 判断长度是否等于期望值。|
+| `length_gt` | 判断长度是否大于期望值。|
+| `length_lt` | 判断长度是否小于期望值。|
+| **集合与范围** |  |
+| `in` | 判断实际值是否包含于指定集合或列表中。|
+| `not_in` | 判断实际值是否不包含于指定集合或列表中。|
+| `between` | 判断实际值是否处于指定范围内。|
+| **空值判断** |  |
+| `is_empty` | 判断值是否为空。|
+| `not_empty` | 判断值是否不为空。|
+| **字典判断（常用）** |    |
+| `res_contains_data` | 判断响应结果是否包含期望的字典数据。`expect_value` 应为 `dict` 类型。|
+| `res_contains_key` | 判断响应结果是否包含期望的字段。`expect_value` 应为 `list[str]` 类型，其中列出期望的键名称。  |
 ## 表字段内容使用规则
 
 ### api_test_data 下的 headers, params , data 字段
@@ -156,7 +161,7 @@ headers, data, params 里面的字段值内容可进行`上下文替换`与`方�
  规则为`__方法名(参数1, 参数2, ...)__`或`__method_name(arga='x', argb='y')__`，适用于测试数据中需要调用系统方法的字段。注意方法前后有两个下划线。
 例如A接口的请求体中需要一个随机16进制颜色值,需要调用方法`random_hex_color`,则实际写入到测试数据中的是`__random_hex_color()__`
 可用方法列表如下:
-```
+```python
 def login_data_encrypt(username, password, captcha_code=None, captcha_request=None) -> str:
     """
     登陆信息RSA加密
@@ -207,13 +212,13 @@ class APiTestDataResExtract(BaseModel):
     description: str = Field(default="", description='提取字段描述')
 ```
 举例
-```
+```json
 [{"name":"xxxname","jsonpath":"$.name","description": "描述信息"}]
 ```
 
 ### api_test_case .pre_requisites、post_steps
 内部内容需要满足如下结构
-```
+```python
 pre_requisites: Optional[list[Requisites]] = Field(default=None, description='前置条件')
 post_steps: Optional[list[Requisites]] = Field(default=None, description='后置步骤')
 
@@ -256,7 +261,7 @@ class Requisites(BaseModel):
 
 ### api_test_case.test_steps
 内容应该按照如下结构
-```
+```python
 class TestSteps(BaseModel):
     """
     测试步骤
@@ -268,6 +273,6 @@ class TestSteps(BaseModel):
 ```
 
 **validate_rules 例子**
-```
+```json
 [{"path":"$","operator":"res_contains_data","expect_value":{"userName":"张三"}}]
 ```

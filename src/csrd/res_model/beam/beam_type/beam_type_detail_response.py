@@ -6,7 +6,7 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 
-from csrd.res_model.pub.base_csrd_response_model import BaseCsrdResponseModel
+from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 
@@ -25,7 +25,7 @@ class BeamTypeItem(BaseModel):
     beamTypeColor: Optional[str] = Field(default=None, description="架梁图例颜色")
 
 @api_res_model_register
-class BeamTypeDetailResponse(BaseCsrdResponseModel):
+class BeamTypeDetailResponse(BaseCsrdApiResponse):
     """
     梁型详情响应模型
     """

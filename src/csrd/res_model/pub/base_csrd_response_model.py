@@ -4,8 +4,8 @@
 # Author:zhouxiaochuan
 # Description:
 import logging
-from typing import Union
-from pydantic import field_validator
+from typing import Union, Generic, TypeVar, List
+from pydantic import field_validator, ConfigDict, Field
 
 from typing import Optional
 
@@ -13,33 +13,77 @@ from pydantic import BaseModel, model_validator
 
 from csrd.pub.pub_res_code import CSRD_P_RESULT_CODES
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
+T = TypeVar("T")
 
+class ApiModel(BaseModel):
+    """所有响应模型的公共配置基类。
 
+    - `extra="allow"`：接口实际返回的字段可能比 Swagger 文档多（文档滞后），
+      多出来的字段保留在 `model_extra` 里，既能读又不会因「未知字段」报错。
+    - `populate_by_name=True`：解析时 `bddId`（alias）和 `bdd_id`（字段名）都能用。
+    - `str_strip_whitespace=False`：不在解析阶段裁剪字符串，保持后端原值，便于断言发现脏数据。
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+        populate_by_name=True,
+        str_strip_whitespace=False,
+    )
+# @api_res_model_register
+# class BaseCsrdApiResponse(_ApiModel):
+#     """
+#     用户基础返回模型
+#     """
+#     code: str
+#     data: Optional[Union[dict, list, bool, str]]
+#     message: Optional[str] = None
+#     status: str
+#     timestamp: int
+#
+#     @field_validator("code")
+#     @classmethod
+#     def validate_code(cls, code: int):
+#         if code in CSRD_P_RESULT_CODES:
+#             return code
+#         raise ValueError(f"不支持的业务状态码: {code}")
+#
 @api_res_model_register
-class BaseCsrdResponseModel(BaseModel):
-    """
-    用户基础返回模型
-    """
-    code: str
-    data: Optional[Union[dict, list, bool, str]]
-    message: Optional[str] = None
-    status: str
-    timestamp: int
+class BaseCsrdApiResponse(ApiModel, Generic[T]):
+    """所有接口共用的响应外壳。
 
+    形如：{"status": "1", "code": "200", "message": "操作成功", "timestamp": 1730000000000, "data": ...}
+    """
+
+    status: str = Field(
+        description="业务状态标识，与 code 配合判断成功与否；具体取值以后端约定为准",
+    )
+    code: str = Field(
+        description="状态码，字符串形式（如 \"200\"）；后端返回数字时会被自动转成字符串",
+    )
+    message: Optional[str] = Field(description="提示信息，失败时通常带具体原因")
+    timestamp: int = Field( description="服务端时间戳（毫秒）")
+    data: Optional[T] = Field(
+        default=None,
+        description="业务数据；本文件的泛型参数决定其具体结构（对象 / 数组 / 分页对象）",
+    )
     @field_validator("code")
     @classmethod
-    def validate_code(cls, code: int):
+    def validate_code(cls, code: str):
         if code in CSRD_P_RESULT_CODES:
             return code
         raise ValueError(f"不支持的业务状态码: {code}")
 
 
 
-class CsrdPageData(BaseModel):
+class CsrdPageResult(ApiModel, Generic[T]):
     """
     分页数据模型
     """
     total: int
+    list: List[T] = Field(
+        default_factory=list,
+        description="当前页数据；字段名与接口一致就叫 list，缺省时为空数组而不是 None",
+    )
     pageNum: int
     pageSize: int
     size: int

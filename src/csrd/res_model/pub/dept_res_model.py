@@ -7,7 +7,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
-from csrd.res_model.pub.base_csrd_response_model import BaseCsrdResponseModel
+from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 
@@ -35,7 +35,7 @@ class DeptNode(BaseModel):
 DeptNode.model_rebuild()
 
 @api_res_model_register
-class DeptResponse(BaseCsrdResponseModel):
+class DeptResponse(BaseCsrdApiResponse):
     """接口响应包装"""
 
     data: List[DeptNode] = Field(default_factory=list, description="部门树数据")

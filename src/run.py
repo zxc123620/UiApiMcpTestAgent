@@ -26,8 +26,8 @@ def run():
         allure_path.as_posix(),
         "--clean-alluredir",
         "--module",
-        "梁型管理",
-        "--sub_module",
+        "通图号",
+        "--submodule",
         "新增"
     ])
 

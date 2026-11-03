@@ -4,10 +4,11 @@
 # Author:zhouxiaochuan
 # Description:
 import re
-from typing import Optional
+from typing import Optional, Sized
 
 from uiapimcptestagent.api.base_api_client import ApiRequest, ApiResponse
 from uiapimcptestagent.assertion.assertion_tools import APIAssertionTools
+from uiapimcptestagent.db.process.string_context_executor import StringContextExecutor
 from uiapimcptestagent.errors import ResQuestNotFound
 from uiapimcptestagent.tools.response_model_tool import json_extract
 
@@ -41,6 +42,11 @@ def _op_eq_req_body_jsonpath(actual, expected, **ctx):
 def _op_ne(actual, expected, **ctx):
     assert actual != expected, f"期望不等于 {expected!r}, 实际 {actual!r}"
 
+def _op_eq_context(actual, expect, **ctx):
+    context = StringContextExecutor.context.get(expect, None)
+    assert context is not None, f"上下文不存在: {expect}"
+    assert actual == context, f"期望 {context!r}, 实际 {actual!r}"
+
 def _op_gt(actual, expected, **ctx):
     assert actual > expected, f"期望 > {expected}, 实际 {actual}"
 
@@ -69,9 +75,13 @@ def _op_type(actual, expected, **ctx):
         f"期望类型 {expected}, 实际 {type(actual).__name__}"
 
 def _op_contains(actual, expected, **ctx):
+    if not actual:
+        assert False, f"实际为空，期望包含 {expected!r}"
     assert expected in actual, f"{actual!r} 不包含 {expected!r}"
 
 def _op_not_contains(actual, expected, **ctx):
+    if not actual:
+        assert False, f"实际为空，期望不包含 {expected!r}"
     assert expected not in actual, f"{actual!r} 不应包含 {expected!r}"
 
 def _op_regex(actual, expected, **ctx):
@@ -80,12 +90,18 @@ def _op_regex(actual, expected, **ctx):
         f"{actual!r} 不匹配正则 {expected!r}"
 
 def _op_length_eq(actual, expected, **ctx):
+    if not isinstance(actual, Sized):
+        assert False, f"实际值非可迭代对象: {actual!r}"
     assert len(actual) == expected, f"长度期望 {expected}, 实际 {len(actual)}"
 
 def _op_length_gt(actual, expected, **ctx):
+    if not isinstance(actual, Sized):
+        assert False, f"实际值非可迭代对象: {actual!r}"
     assert len(actual) > expected, f"长度期望 > {expected}, 实际 {len(actual)}"
 
 def _op_length_lt(actual, expected, **ctx):
+    if not isinstance(actual, Sized):
+        assert False, f"实际值非可迭代对象: {actual!r}"
     assert len(actual) < expected, f"长度期望 < {expected}, 实际 {len(actual)}"
 
 def _op_in(actual, expected, **ctx):
@@ -98,9 +114,13 @@ def _op_startswith(actual, expected, **ctx):
     assert str(actual).startswith(expected), f"{actual!r} 不以 {expected!r} 开头"
 
 def _op_endswith(actual, expected, **ctx):
+    if actual is None:
+        assert False, f"实际值为 None，期望以 {expected!r} 结尾"
     assert str(actual).endswith(expected), f"{actual!r} 不以 {expected!r} 结尾"
 
 def _op_between(actual, expected, **ctx):
+    if actual is None:
+        assert False, f"实际值为 None，期望在 [{expected!r}] 区间"
     lo, hi = expected
     assert lo <= actual <= hi, f"{actual} 不在 [{lo}, {hi}] 区间"
 
@@ -125,6 +145,7 @@ def _op_not_empty(actual, expected, **ctx):
 
 OPERATORS = {
     "eq": _op_eq, "ne": _op_ne, "eq_req_body_jsonpath": _op_eq_req_body_jsonpath,
+    "eq_context": _op_eq_context,
     "gt": _op_gt, "gte": _op_gte, "lt": _op_lt, "lte": _op_lte,
     "exists": _op_exists, "not_exists": _op_not_exists,
     "type": _op_type,
