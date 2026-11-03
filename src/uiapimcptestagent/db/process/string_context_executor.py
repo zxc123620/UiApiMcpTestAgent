@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from uiapimcptestagent import db_engine
 from uiapimcptestagent.db.process.data_process import DataProcess
 from uiapimcptestagent.db.tables import ApiTestData
+from uiapimcptestagent.errors import KeyNotFound
 
 
 class StringContextExecutor(DataProcess):
@@ -73,8 +74,8 @@ class StringContextExecutor(DataProcess):
             key = session.scalar(stmt)
             if key is None:
                 logging.info(f"测试数据 {key} 不存在")
-                return "not_found"
-            return f"__send_request({key})__"
+                raise KeyNotFound(f"测试数据 {key} 不存在")
+            return f"__send_request('{key}')__"
 
     @classmethod
     def data_replacer(cls, value_str: str) -> Any:

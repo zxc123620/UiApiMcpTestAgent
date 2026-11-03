@@ -28,6 +28,7 @@ class ApiModel(BaseModel):
         extra="allow",
         populate_by_name=True,
         str_strip_whitespace=False,
+        serialize_by_alias=True
     )
 # @api_res_model_register
 # class BaseCsrdApiResponse(_ApiModel):
@@ -63,9 +64,9 @@ class BaseCsrdApiResponse(ApiModel, Generic[T]):
     message: Optional[str] = Field(description="提示信息，失败时通常带具体原因")
     timestamp: int = Field( description="服务端时间戳（毫秒）")
     data: Optional[T] = Field(
-        default=None,
         description="业务数据；本文件的泛型参数决定其具体结构（对象 / 数组 / 分页对象）",
     )
+
     @field_validator("code")
     @classmethod
     def validate_code(cls, code: str):
@@ -80,7 +81,8 @@ class CsrdPageResult(ApiModel, Generic[T]):
     分页数据模型
     """
     total: int
-    list: List[T] = Field(
+    data_list: List[T] = Field(
+        alias="list",
         default_factory=list,
         description="当前页数据；字段名与接口一致就叫 list，缺省时为空数组而不是 None",
     )

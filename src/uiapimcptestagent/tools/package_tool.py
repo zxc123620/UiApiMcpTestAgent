@@ -26,6 +26,8 @@ def auto_load_module(package_name: str = "models"):
         [str(package_path)], prefix=f"{package_name}."
     ):
         try:
+            logging.info(f"导入返回模型:{module_name} ")
             importlib.import_module(module_name)
         except Exception as e:
             logging.error(f"导入模型模块 {module_name} 失败: {e}")
+            raise e

@@ -10,13 +10,12 @@
 # Description:
 from typing import Optional, List, Union
 
-from pydantic import BaseModel
 
-from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse
+from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse, ApiModel
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 
-class UserParamModel(BaseModel):
+class UserParamModel(ApiModel):
     """
     用户参数模型
     """
@@ -28,7 +27,7 @@ class UserParamModel(BaseModel):
     permissionSet: Optional[List[str]]
 
 
-class SystemParamModel(BaseModel):
+class SystemParamModel(ApiModel):
     """
     系统参数模型
     """
@@ -40,7 +39,7 @@ class SystemParamModel(BaseModel):
     rabbitmqPort: Optional[str]
 
 
-class LoginDataModel(BaseModel):
+class LoginDataModel(ApiModel):
     """
     登录返回数据模型
     """
@@ -93,8 +92,9 @@ class LoginDataModel(BaseModel):
     showAdmin: Optional[str]
 
 @api_res_model_register
-class UserLoginResModel(BaseCsrdApiResponse):
+class UserLoginResModel(BaseCsrdApiResponse[Optional[Union[LoginDataModel, str]] ]):
     """
     用户登录返回模型
     """
-    data: Optional[Union[LoginDataModel, str]] = None
+    pass
+    # data: Optional[Union[LoginDataModel, str]] = None

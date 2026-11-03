@@ -10,6 +10,7 @@ from functools import wraps
 from typing import Any
 
 from uiapimcptestagent.db.process.data_process import DataProcess
+from uiapimcptestagent.errors import MethodExecutionFailed
 
 
 class StringMethodExecutor(DataProcess):
@@ -101,7 +102,8 @@ class StringMethodExecutor(DataProcess):
                 return cls.data_replacer(value_str.replace(match.group(0), str(result)))
         except Exception as e:
             logging.info(f"执行方法失败: {method_str}, 错误: {e}")
-            return value_str  # 保持原样
+            raise MethodExecutionFailed(f"执行方法失败: {method_str}")
+            # return value_str  # 保持原样
     #
     # @classmethod
     # def process_string(cls, data: dict) -> str:

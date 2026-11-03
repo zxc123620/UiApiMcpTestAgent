@@ -5,13 +5,13 @@
 # Description:
 
 from typing import List, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import Field, ConfigDict
 
-from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse
+from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse, ApiModel
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 
-class DeptNode(BaseModel):
+class DeptNode(ApiModel):
     """部门树节点（递归结构）"""
 
     model_config = ConfigDict(extra="allow")  # 若想严格校验，可删掉此行或设为 "ignore"
@@ -35,7 +35,7 @@ class DeptNode(BaseModel):
 DeptNode.model_rebuild()
 
 @api_res_model_register
-class DeptResponse(BaseCsrdApiResponse):
+class DeptResponse(BaseCsrdApiResponse[List[DeptNode]]):
     """接口响应包装"""
 
-    data: List[DeptNode] = Field(default_factory=list, description="部门树数据")
+    # data: List[DeptNode] = Field(default_factory=list, description="部门树数据")

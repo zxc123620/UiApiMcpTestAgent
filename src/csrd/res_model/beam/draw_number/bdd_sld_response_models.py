@@ -56,8 +56,7 @@ from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
 from csrd.res_model.pub.base_csrd_response_model import ApiModel, CsrdPageResult, BaseCsrdApiResponse
 from uiapimcptestagent.api.base_api_client import ApiResponse
-
-T = TypeVar("T")
+from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 
 # ======================================================================================
@@ -228,7 +227,7 @@ class DesignDrawingsNumberDetail(ApiModel):
         default=None, alias="bddSort", description="序号（文档未列，实际可能返回；保留以便断言排序）"
     )
 
-
+@api_res_model_register
 class BddPageResponse(BaseCsrdApiResponse[CsrdPageResult[DesignDrawingsNumberItem]]):
     """通图号-分页列表查询的完整响应。
 
@@ -241,7 +240,7 @@ class BddPageResponse(BaseCsrdApiResponse[CsrdPageResult[DesignDrawingsNumberIte
         assert page.data.list[0].design_drawings_number == "测试通图号-...";  # 新建排最前
     """
 
-
+@api_res_model_register
 class BddListResponse(BaseCsrdApiResponse[List[DesignDrawingsNumberItem]]):
     """通图号-列表查询的完整响应（`data` 直接是数组，没有 total/分页字段）。
 
@@ -249,7 +248,7 @@ class BddListResponse(BaseCsrdApiResponse[List[DesignDrawingsNumberItem]]):
     该接口同时被梁型管理模块用作「取通图号列表拿 bddId」的数据源。
     """
 
-
+@api_res_model_register
 class BddDetailResponse(BaseCsrdApiResponse[DesignDrawingsNumberDetail]):
     """通图号-通过 id 查询的完整响应（`data` 是单个对象）。
 
@@ -339,7 +338,7 @@ class StaticLoadDesignDetail(StaticLoadDesignItem):
     避免两份定义漂移；后续若详情接口补充字段，可在此单独覆盖而不用改列表模型。
     """
 
-
+@api_res_model_register
 class StaticLoadPageResponse(BaseCsrdApiResponse[CsrdPageResult[StaticLoadDesignItem]]):
     """静载参数-分页列表查询的完整响应。
 
@@ -348,16 +347,16 @@ class StaticLoadPageResponse(BaseCsrdApiResponse[CsrdPageResult[StaticLoadDesign
     实际上按 bddId 过滤才是常见用法）。
     """
 
-
-class StaticLoadListResponse(BaseCsrdApiResponse[List[StaticLoadDesignItem]]):
+@api_res_model_register
+class StaticLoadDesignListResponse(BaseCsrdApiResponse[List[StaticLoadDesignItem]]):
     """静载参数-列表查询的完整响应（`data` 直接是数组）。
 
     GET /base/bfmBaseStaticloadDesign/queryBfmBaseStaticloadDesignVoList.ajax
     按 bddId 查一条配置时用这个接口，`data[0]` 即该通图号的静载参数。
     """
 
-
-class StaticLoadDetailResponse(BaseCsrdApiResponse[StaticLoadDesignDetail]):
+@api_res_model_register
+class StaticLoadDesignDetailResponse(BaseCsrdApiResponse[StaticLoadDesignDetail]):
     """静载参数-通过 id 查询的完整响应（`data` 是单个对象）。
 
     GET /base/bfmBaseStaticloadDesign/queryBfmBaseStaticloadDesignById.ajax

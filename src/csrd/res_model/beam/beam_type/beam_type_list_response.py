@@ -3,14 +3,14 @@
 # Time: 2026/10/29 17:23
 # Author:zhouxiaochuan
 # Description:
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from typing import Optional
+from pydantic import  Field
 
-from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse
+from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse, ApiModel
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 
-class BeamTypeItem(BaseModel):
+class BeamTypeItem(ApiModel):
     btId: str = Field(..., description="主键")
     name: str = Field(..., description="梁型名称")
     beamBodyType: str = Field(..., description="梁体类型（1T梁；2箱梁）")
@@ -25,8 +25,9 @@ class BeamTypeItem(BaseModel):
     beamTypeColor: Optional[str] = Field(default=None, description="架梁图例颜色")
 
 @api_res_model_register
-class BeamTypeListResponse(BaseCsrdApiResponse):
+class BeamTypeListResponse(BaseCsrdApiResponse[list[BeamTypeItem]]):
     """
     梁型列表响应模型
     """
-    data: Optional[List[BeamTypeItem]] = Field(default=None, description="梁型列表")
+    pass
+    # data: Optional[List[BeamTypeItem]] = Field(default=None, description="梁型列表")

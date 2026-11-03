@@ -4,13 +4,13 @@
 # Author:zhouxiaochuan
 # Description:
 from typing import List, Optional, Union
-from pydantic import BaseModel, Field
+from pydantic import Field
 
-from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse, CsrdPageResult
+from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse, CsrdPageResult, ApiModel
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
-class BeamTypeItem(BaseModel):
-    btId: str = Field(..., description="主键")
+class BeamTypeItem(ApiModel):
+    btId: str = Field(...,alias="", description="主键")
     name: str = Field(..., description="梁型名称")
     beamBodyType: str = Field(..., description="梁体类型（1T梁；2箱梁）")
     beamLengthType: str = Field(..., description="长度类型(1、32米；2、 24米；3、20米；4、16米；5、40米；6、其他 )")
@@ -29,8 +29,9 @@ class PageData(CsrdPageResult):
 
 
 @api_res_model_register
-class BeamTypePageResponse(BaseCsrdApiResponse):
+class BeamTypePageResponse(BaseCsrdApiResponse[Union[PageData, str]]):
     """
     梁型分页响应模型
     """
-    data: Optional[Union[PageData, str]] = Field(default=None,description="分页数据")
+    pass
+    # data: Optional[Union[PageData, str]] = Field(default=None,description="分页数据")

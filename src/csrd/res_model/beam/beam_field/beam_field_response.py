@@ -4,15 +4,13 @@
 # Author:zhouxiaochuan
 # Description:
 from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import Field
 
-from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse
+from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse, ApiModel
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 
-class BeamFieldData(BaseModel):
-    model_config = ConfigDict(serialize_by_alias=True)
-
+class BeamFieldData(ApiModel):
     # --- 必须字段 ---
     bf_id: str = Field(..., alias="bfId", description="梁场id;queryParamEq")
     project_name: str = Field(..., alias="projectName", description="项目名称")
@@ -65,6 +63,7 @@ class BeamFieldData(BaseModel):
     update_time: Optional[str] = Field(None, alias="updateTime", description="修改日期")
 
 @api_res_model_register
-class BeamFieldResponse(BaseCsrdApiResponse):
+class BeamFieldResponse(BaseCsrdApiResponse[list[BeamFieldData]]):
     """最外层响应结构"""
-    data: list[BeamFieldData] = Field(..., description="梁场核心数据")
+    pass
+    # data: list[BeamFieldData] = Field(..., description="梁场核心数据")

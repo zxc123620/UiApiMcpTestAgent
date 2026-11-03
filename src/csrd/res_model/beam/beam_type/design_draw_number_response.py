@@ -4,13 +4,13 @@
 # Author:zhouxiaochuan
 # Description:
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import Field
 
-from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse
+from csrd.res_model.pub.base_csrd_response_model import BaseCsrdApiResponse, ApiModel
 from uiapimcptestagent.tools.response_model_tool import api_res_model_register
 
 
-class BddItem(BaseModel):
+class BddItem(ApiModel):
     bddId: Optional[str] = Field(default=None, description="主键;queryParamEq")
     designDrawingsNumber: str = Field(..., description="图号")
     designBeamType: str = Field(..., description="梁型码")
@@ -18,8 +18,9 @@ class BddItem(BaseModel):
     numberType: Optional[str] = Field(default=None, description="1.基础编码2.其他编码")
 
 @api_res_model_register
-class DesignDrawNumberRes(BaseCsrdApiResponse):
+class DesignDrawNumberRes(BaseCsrdApiResponse[List[BddItem]]):
     """
     设计图号响应模型
     """
-    data: Optional[List[BddItem]] = Field(default=None, description="数据列表")
+    pass
+    # data: Optional[List[BddItem]] = Field(default=None, description="数据列表")

@@ -9,7 +9,6 @@ import uuid
 
 import allure
 import pytest
-from pywin.dialogs import login
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 

@@ -16,3 +16,7 @@ class ContextKeyError(Exception):
 
 class ResQuestNotFound(Exception):
     pass
+class MethodExecutionFailed(Exception):
+    pass
+class ResponseModelNotFound(Exception):
+    pass

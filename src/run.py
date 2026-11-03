@@ -16,7 +16,7 @@ from uiapimcptestagent import current_dir_path
 
 test_path = current_dir_path / "test/"
 allure_path = current_dir_path / "allure-results"
-
+print(f"执行测试用例目录:{test_path}")
 
 def run():
     pytest.main([
@@ -28,7 +28,7 @@ def run():
         "--module",
         "通图号",
         "--submodule",
-        "新增"
+        "编辑"
     ])
 
 
@@ -38,7 +38,7 @@ def run():
 #     input("按任意键退出")
 #     chart_page.close()
 #     chart_page.join()
-
+# print("111")
 run()
 # demo()
 # print("112233")

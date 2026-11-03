@@ -18,7 +18,7 @@ from uiapimcptestagent.api.base_api_client import BaseAPIClient, ApiResponse
 from uiapimcptestagent.db.process.string_context_executor import StringContextExecutor
 from uiapimcptestagent.db.process.string_method_executor import StringMethodExecutor
 from uiapimcptestagent.db.tables import ApiTestData
-from uiapimcptestagent.errors import KeyNotFound
+from uiapimcptestagent.errors import KeyNotFound, ResponseModelNotFound
 from uiapimcptestagent.tools.response_model_tool import API_RESPONSE_MODEL_REGISTRY
 from uiapimcptestagent.tools.singleton import Singleton
 
@@ -82,6 +82,8 @@ class APiClientService(metaclass=Singleton):
             api_test_data = ApiTestDataModel.model_validate(db_data)
         # 从注册器中获取响应模型
         response_model = API_RESPONSE_MODEL_REGISTRY.get(api_test_data.api_info.response_model, None)
+        if api_test_data.api_info.response_model is not None and response_model is None:
+            raise ResponseModelNotFound(f"未定义的返回结果模型:{api_test_data.api_info.response_model}, 已注册模型：{API_RESPONSE_MODEL_REGISTRY.keys()}")
         # 发起请求
         res = self.apiclient.request(
             method=api_test_data.api_info.method,
